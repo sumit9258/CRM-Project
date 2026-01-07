@@ -1,6 +1,6 @@
 import React from "react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 import log from "../assets/log.png";
 import logUser from "../assets/logU.png";
@@ -13,7 +13,6 @@ import { toast } from "react-toastify";
 function Login() {
   const [data, setData] = useState({ email: "", password: "" });
   const [inp,setInp]=useState(false)
-
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -36,7 +35,8 @@ try {
   let result=await res.json()
 
   if (res.ok) {
-      toast.success("register successfully")
+    
+      toast.success("Login successfully")
     }else{
       toast.error(result.message||"envailid ")
       

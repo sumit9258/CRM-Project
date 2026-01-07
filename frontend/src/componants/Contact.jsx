@@ -4,24 +4,36 @@ import logo from "../assets/logo.png"
 import user from "../assets/user.png"
 import { NavLink } from "react-router-dom";
 import { useEffect, useState } from "react";
+import ContactFilter from "./ContactFilter";
+import { useRef } from "react";
 function ContactP() {
 
 const [isforam,setIsforam]=useState(false)
 const [leadData,setLeadData]=useState([])
+const [search,setSearch]=useState("")
+
 
   const [filterData,setFilterData]=useState("all")
-  const filtered=leadData.filter((ele)=>{
-    if(filterData=="all") return true;
-    return ele.status==filterData
-  })
+ 
   const [taskData, setTaskData] = useState({
     fullname: "",
     email: "",
     phone: "",
+    company_name:"",
     linked: "",
     status: "",
   });
 
+  const [isopen,setIsopen]=useState(false)
+const btnRef=useRef(null)
+  const searchFilter=leadData.filter((ele)=>{
+    const statusMatch=filterData=="all"||ele.status==filterData
+    const searchData=search.toLowerCase()
+
+   const machSearch= ele.fullname?.toLowerCase().includes(searchData)||
+    ele.email?.toLowerCase().includes(searchData)
+    return statusMatch&&machSearch
+  })
 
    const handleChange = (e) => {
     const { name,value } = e.target;
@@ -49,9 +61,12 @@ const [leadData,setLeadData]=useState([])
     fullname: "",
     email: "",
     phone: "",
+    company_name:"",
     linked: "",
     status: "",
+    Assign: "",
   });
+  setIsforam(false)
       }
       // res=await res.json()
 
@@ -67,6 +82,24 @@ const [leadData,setLeadData]=useState([])
   const fetchLead=async()=>{
     try {
       let res=await fetch("http://localhost:3000/api/tasks/fetch-lead")
+      res=await res.json()
+console.log(res);
+setLeadData(res)
+
+    } catch (error) {
+      
+    }
+  }
+
+  const FilterData=async(filters)=>{
+    try {
+      let res=await fetch("http://localhost:3000/api/tasks/filter-leads",{
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json"
+        },credentials:"include",
+        body:JSON.stringify(filters)
+      })
       res=await res.json()
 console.log(res);
 setLeadData(res)
@@ -100,6 +133,36 @@ switch (status) {
      }
 
 
+
+const timeAgo = (date) => {
+  const past=new Date(date)
+
+  const now=new Date()
+  // console.log("past",past);
+  // console.log("current",now);
+  
+  const diff=Math.floor((now-past)/1000)
+  // console.log("diff",diff);
+  
+  if (diff<60) {
+    return `${diff} sec Ago`
+  }
+  if (diff<3600) {
+    return `${Math.floor(diff/60)} min Ago`
+  }
+  if (diff<86400) {
+    return `${Math.floor(diff/3600)} hours Ago`
+  }
+    return `${Math.floor(diff/86400)} days Ago`
+
+
+};
+
+
+
+
+
+
   return  <>
       <div className="bg-[#111418] flex h-screen overflow-hidden">
        
@@ -120,7 +183,7 @@ switch (status) {
     <div>
 
     <h2 className="text-[#9CABBA]">Total Leads</h2>
-    <p className="text-white">1,248</p>
+    <p className="text-white">{leadData.length}</p>
     </div>
     <div>
         <p className="text-[#9CABBA]">This Month</p>
@@ -141,12 +204,24 @@ switch (status) {
     <Search size={25} className="absolute inset-y-2.5 text-[#94A3B1] inset-x-2" />
     <div>
 
-    <input type="text" className="bg-[#283039] w-170 h-12 rounded-lg placeholder:text-[#94A3B1] placeholder:text-lg px-10" placeholder="search by name, email or company" />
+    <input type="text" name="search" onChange={(e)=> setSearch(e.target.value)} className="bg-[#283039] w-170 h-12 rounded-lg placeholder:text-[#94A3B1] placeholder:text-lg px-10" placeholder="search by name, email or company" />
     </div>
 </div>
 
 <div className="text-white flex gap-4">
-    <button className="bg-[#283039] flex gap-2 items-center rounded-lg p-2 w-25"><ListFilter />Filter</button>
+  <div className="relative">
+
+    <button onClick={()=> setIsopen(!isopen)} ref={btnRef} className="bg-[#283039] flex gap-2 items-center rounded-lg p-2 w-25"><ListFilter />Filter</button>
+    {isopen&&(
+      <ContactFilter onApply={(filters)=>{
+  FilterData(filters)
+      }}
+      onclose={()=> setIsopen(false)}
+      onclear={()=> fetchLead()}
+      formRef={btnRef}
+      />
+    )}
+  </div>
     <button onClick={()=> setIsforam(true)} className="bg-[#2563EB] w-40 pl-4 gap-2 flex rounded-lg items-center"><Plus />Add New Lead</button>
 </div>
 
@@ -173,7 +248,7 @@ switch (status) {
               <div className="fixed flex justify-center items-center inset-0 z-50">
                 <form
                   onSubmit={handleSubmit}
-                  className="w-full max-w-max p-6 border-white/10  space-y-4 rounded-lg border backdrop:blur-lg bg-white/10"
+                  className="w-full max-w-xl p-6 border-white/10  space-y-4 rounded-lg border backdrop:blur-lg bg-[#1a1d21] "
                 >
                   <div className="flex text-xl text-white justify-between">
                     <h2>Add Task</h2>
@@ -229,6 +304,18 @@ switch (status) {
 
                   <input
                     type="text"
+                    name="company_name"
+                    onChange={handleChange}
+                    value={taskData.company_name}
+                    className="text-white border focus:border-blue-600 focus:outline-none pl-2 bg-[#111418] border-white/10  placeholder:text-[#9CABBA] placeholder:font-semibold w-full h-10 rounded-lg"
+                    placeholder="Search Company"
+                  />
+                  <label className="text-[#9CABBA] font-semibold">
+                    Linked 
+                  </label>
+
+                  <input
+                    type="text"
                     name="linked"
                     onChange={handleChange}
                     value={taskData.linked}
@@ -250,6 +337,20 @@ switch (status) {
                         <option value="Qualified">Qualified</option>
                         <option value="Unresponsive">Unresponsive</option>
                         <option value="contacted">Contacted</option>
+                      </select>
+                  <label className="text-[#9CABBA] font-semibold">
+                    Assigen
+                  </label>
+                  <select
+                        name="Assign"
+                        onChange={handleChange}
+                        value={taskData.status}
+                        required
+                        className="  border w-full h-10 focus:border-blue-600 focus:outline-none bg-[#111418] border-white/10 rounded-lg text-white"
+                      >
+                        <option value="">Please select </option>
+                        <option value="Sales Executive – Rahul">Sales Executive – Rahul</option>
+                        <option value="Sales Executive – Priya">Sales Executive – Priya</option>
                       </select>
                   <div className="flex justify-center ">
                     <button
@@ -279,14 +380,14 @@ switch (status) {
 
   </tr>
 </thead>
-{filtered.map((ele)=>(
+{searchFilter.map((ele)=>(
 
 <tbody >
   <tr className="bg-[#1a1d21] hover:bg-white/5">
     <td className="px-4 py-4">
       <p className="text-white">{ele.fullname}</p>
-      <p className="text-[#9CABBA]">Company Name</p>
-    </td>
+      <p className="text-[#9CABBA]">{ele.company_name}</p>
+    </td> 
     <td>
       <p className="text-white">Mail:{ele.email}</p>
       <p className="text-[#9CABBA]">{ele.phone}</p>
@@ -298,7 +399,7 @@ switch (status) {
       <p className="text-[#9CABBA]">{ele.linked}</p>
     </td>
     <td>
-      <p className="text-[#9CABBA]">Last Activity</p>
+      <p className="text-[#9CABBA]">{timeAgo(ele.createdAt)}</p>
     </td>
   </tr>
 </tbody>

@@ -51,8 +51,11 @@ function Navbar() {
       {/* USER SECTION */}
       <div className="mt-auto flex flex-col gap-4 text-gray-400">
         <div className="flex gap-3 items-center">
+          <NavLink to="/setting" className={navLinkClass}>
+
           <Settings size={22} />
           <span>Settings</span>
+          </NavLink>
         </div>
 
         <div className="flex gap-3 items-center">

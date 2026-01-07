@@ -1,111 +1,133 @@
 import UserModel from "../models/UserModel.js";
 import getToken from "../utils/token.js";
-import { configDotenv } from "dotenv";
-import bcrypt from "bcrypt"
+import bcrypt from "bcrypt";
 
-configDotenv()
+// helper
+const sendUser = (user) => ({
+  _id: user._id,
+  name: user.name,
+  email: user.email,
+});
 
-export const Register=async(req,res)=>{
-    try {
-        const {name,email,password,repassword}=req.body
-        let user=await UserModel.findOne({email})
-        if (user) {
-            return res.status(400).json({message:"user already exist"})
-        }
-        if (password.length<6) {
-            return res.status(400).json({message:"please enter 6 digit password"})
-        }
+/* ================= REGISTER ================= */
+export const Register = async (req, res) => {
+  try {
+    const { name, email, password, repassword } = req.body;
 
-        if (password!=repassword) {
-            return res.status(400).json({message:"password is not match"})
-            
-        }
-
-        const hashPass=await bcrypt.hash(password,10)
-
-        user=await UserModel.create({name,email,password:hashPass})
-        
-        const token=await getToken(user._id)
-        console.log("token",token);
-        
-        res.cookie("token", token, {
-        httpOnly: true,   
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict", 
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-        });
-
-    
-
-        return res.status(201).json(user)
-
-    } catch (error) {
-        console.log(error);
-        
+    const exists = await UserModel.findOne({ email });
+    if (exists) {
+      return res.status(409).json({ message: "User already exists" });
     }
-}
 
-export const Login=async(req,res)=>{
-    try {
-        const {email,password}=req.body
-        let user=await UserModel.findOne({email})
-        if (!user) {
-            return res.status(400).json({message:"user is not register"})
-
-        }
-
-       const checkPass=await bcrypt.compare(password,user.password)
-
- if (!checkPass) {
-            return res.status(400).json({message:"password is wrong"})
-        }
-        
-
-        const token=await getToken(user._id)
-        console.log("token",token);
-        
-        res.cookie("token",token,{
-            httpOnly:true,
-            secure:process.env.NODE_ENV === "production",
-            sameSite:"strict",
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        })
-
-        return res.status(201).json(user)
-
-    } catch (error) {
-        console.log(error);
-        
+    if (password.length < 6) {
+      return res.status(400).json({ message: "Password must be 6 characters" });
     }
-}
 
-
-
-export const GoogleLogin=async(req,res)=>{
-    try {
-        const {name,email}=req.body
-        let user=await UserModel.findOne({email})
-        if (!user) {
-        user=await UserModel.create({name,email})
-        }
-
-        
-        const token=await getToken(user._id)
-        console.log("token",token);
-        
-        res.cookie("token", token, {
-        httpOnly: true,   
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict", 
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-        });
-
-    
-
-        return res.status(201).json(user)
-
-    } catch (error) {
-        console.log(error);
-        
+    if (password !== repassword) {
+      return res.status(400).json({ message: "Passwords do not match" });
     }
-}
+
+    const hash = await bcrypt.hash(password, 10);
+
+    const user = await UserModel.create({
+      name,
+      email,
+      password: hash,
+      provider: "local",
+    });
+
+    const token = getToken(user._id);
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(201).json({ user: sendUser(user) });
+  } catch (err) {
+    return res.status(500).json({ message: "Register failed" });
+  }
+};
+
+/* ================= LOGIN ================= */
+export const Login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await UserModel.findOne({ email }).select("+password");
+
+    if (!user || !user.password) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const token = getToken(user._id);
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(200).json({ user: sendUser(user) });
+  } catch (err) {
+    return res.status(500).json({ message: "Login failed" });
+  }
+};
+
+/* ================= GOOGLE LOGIN ================= */
+export const GoogleLogin = async (req, res) => {
+  try {
+    const { name, email } = req.body;
+
+    let user = await UserModel.findOne({ email });
+
+    if (!user) {
+      user = await UserModel.create({
+        name,
+        email,
+        provider: "google",
+      });
+    }
+
+    const token = getToken(user._id);
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(200).json({ user: sendUser(user) });
+  } catch (err) {
+    return res.status(500).json({ message: "Google login failed" });
+  }
+};
+
+/* ================= LOGOUT ================= */
+export const Logout = async (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    path: "/",
+  });
+
+  return res.status(200).json({ message: "Logged out" });
+};
+
+/* ================= ME ================= */
+export const IsAuthenticated = async (req, res) => {
+  return res.status(200).json({ user: req.user });
+};

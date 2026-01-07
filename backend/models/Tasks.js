@@ -1,39 +1,38 @@
 import mongoose, { Schema } from "mongoose";
 
-const ContactSchema=new Schema({
-    fullname:{
+const TaskSchema=new Schema({
+    Title:{
         type:String,
         required:true
     },
-    email:{
+    DUE_DATE:{
         type:String,
         required:true
     },
-    phone:{
+    Due_Time:{
         type:String,
         required:true
     },
-    company_name:{
+    Priority:{
         type:String,
         required:true
+    },
+    Assignee:{
+        type:String,
+        required:true
+    },
+    ContactDeal:{
+        type:String,
+        required:true
+    },
+    Reminder:{
+        type:String,
+    },
+    Notes:{
+        type:String,
+        required:true
+    },
+})
 
-    },
-    linked:{
-        type:String,
-        required:true
-
-    },
-    status:{
-        type:String,
-        required:true
-
-    },
-    Assign:{
-        type:String,
-        required:true
-
-    }
-},{timestamps:true})
-
-const ContactModel= mongoose.model("lead",ContactSchema)
-export default ContactModel
+const TasksModel= mongoose.model("Real Tasks",TaskSchema)
+export default TasksModel

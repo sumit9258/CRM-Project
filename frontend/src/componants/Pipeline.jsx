@@ -160,17 +160,38 @@ const [activeCard, setActiveCard] = useState(null);
     Description: "",
   });
 
+
+  const [search,setSearch]=useState("")
+
   const [oppoData, setOppoData] = useState([]);
 
 const [open, setOpen] = useState(false);
   const btnRef = useRef(null);
 
-  const fetchPipelineDeals = (filters) => {
+  const fetchPipelineDeals = async(filters) => {
     console.log("Applied Filters:", filters);
+    try {
+      let res=await fetch("http://localhost:3000/api/tasks/filter-opportunity",{
+        method:"POST",
+        headers:{
+
+          "Content-Type":"application/json",
+        },
+          credentials:"include",
+      body:JSON.stringify(filters)
+      })
+      if (res.ok) {
+        res=await res.json()
+        setOppoData(res)
+      }
+    } catch (error) {
+      console.log(error);
+      
+    }
   };
 
 
-  
+
   const handleDragEnd = async (event) => {
   const { active, over } = event;
 
@@ -267,6 +288,20 @@ const [open, setOpen] = useState(false);
     fetchOpportunity();
   }, []);
 
+
+  const filterOppoData=oppoData.filter((ele)=>{
+    const searchData=search.toLowerCase()
+return(
+  ele.opportunitie?.toLowerCase().includes(searchData)||
+  ele.company_name?.toLowerCase().includes(searchData)||
+  ele.lead_Source?.toLowerCase().includes(searchData)||
+  ele.AssignedTo?.toLowerCase().includes(searchData)
+)
+  })
+  
+
+  
+
   return (
     <>
       <div className="bg-[#111418] flex h-screen overflow-hidden">
@@ -306,7 +341,10 @@ const [open, setOpen] = useState(false);
               <div>
                 <input
                   type="text"
-                  className="bg-[#283039] w-170 h-12 rounded-lg placeholder:text-[#94A3B1] placeholder:text-lg px-10"
+                  name="search"
+                  value={search}
+                  onChange={(e)=> setSearch(e.target.value)}
+                  className="bg-[#283039] text-white w-170 h-12 rounded-lg placeholder:text-[#94A3B1] placeholder:text-lg px-10"
                   placeholder="Search deals, companies..."
                 />
               </div>
@@ -317,8 +355,9 @@ const [open, setOpen] = useState(false);
       <button
         ref={btnRef}
         onClick={() => setOpen(!open)}
-        className="px-4 py-2 bg-slate-800 text-white rounded-md"
+        className="bg-[#283039] flex gap-2 items-center rounded-lg p-2 w-25"
       >
+        <ListFilter/>
         Filter
       </button>
 
@@ -349,10 +388,10 @@ const [open, setOpen] = useState(false);
                 <div>
                   <form
                     onSubmit={handleSubmit}
-                    className="backdrop:blur-lg bg-white/10 p-5 w-160  rounded-lg"
+                    className="backdrop:blur-lg bg-[#1a1d21]  p-5 w-160  rounded-lg"
                   >
                     <div className="space-y-4">
-                      <div className="flex text-xl pb-3 border-b text-white justify-between">
+                      <div className="flex text-xl pb-3 border-b border-[#283039] text-white justify-between">
                         <h2>Add Opportunity</h2>
                         <X onClick={() => setForm(false)} />
                       </div>
@@ -507,7 +546,7 @@ const [open, setOpen] = useState(false);
                         </div>
                       </div>
 
-                      <div className="flex border-t pt-4 border-white justify-end gap-5 pr-5">
+                      <div className="flex border-t pt-4 border-[#283039] justify-end gap-5 pr-5">
                         <button className="px-4 py-2 rounded-lg bg-white/10 text-white hover:bg-white/20">
                           Cancel
                         </button>
@@ -539,7 +578,7 @@ const [open, setOpen] = useState(false);
     {["Discovery", "Qualified", "Proposal", "Negotiation", "Close"].map(
       (stage) => (
         <DroppableColumn key={stage} stage={stage}>
-          {oppoData
+          {filterOppoData
             .filter((ele) => ele.stage === stage)
             .map((ele) => (
               <DraggableCard key={ele._id} ele={ele} />

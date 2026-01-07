@@ -1,5 +1,5 @@
 import express from "express"
-import { AddTask, editStage, EditTask, fetchTask, GetLead, GetOpportunity, Lead, opportunity } from "../controllers/Task.js"
+import { AddTask, AddTasks, editStage, EditTask, fetchTask, FetchTasks, GetLead, GetOpportunity, GetUser, Lead, leadFilter, opportunity, opportunityFilter } from "../controllers/Task.js"
 const taskRouter=express.Router()
 
 taskRouter.post("/add-task",AddTask)
@@ -10,6 +10,11 @@ taskRouter.get("/fetch-lead",GetLead)
 taskRouter.post("/add-opportunity",opportunity)
 taskRouter.get("/fetch-opportunity",GetOpportunity)
 taskRouter.patch("/update-stage",editStage)
+taskRouter.post("/filter-opportunity",opportunityFilter)
+taskRouter.post("/filter-leads",leadFilter)
+taskRouter.get("/get-users",GetUser)
+taskRouter.post("/add-tasks",AddTasks)
+taskRouter.get("/fetch-tasks",FetchTasks)
 
 
 export default taskRouter

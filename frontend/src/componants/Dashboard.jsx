@@ -164,7 +164,7 @@ function Dashboard() {
               <div className="fixed flex justify-center items-center inset-0 z-50">
                 <form
                   onSubmit={handleSubmit}
-                  className="w-full max-w-md p-6 border-white/10  space-y-4 rounded-lg border backdrop:blur-lg bg-white/10"
+                  className="w-full max-w-md p-6 border-white/10  space-y-4 rounded-lg border backdrop:blur-lg bg-[#1a1d21] "
                 >
                   <div className="flex text-xl text-white justify-between">
                     <h2>Add Task</h2>
