@@ -124,7 +124,11 @@ switch (status) {
   case "new":
     return "bg-green-500/20 text-green-400"
   case "Qualified":
-        return "bg-blue-500/20 text-green-400"
+        return "bg-blue-500/20 text-blue-400"
+  case "Unresponsive":
+        return "bg-red-500/20 text-red-400"
+  case "contacted":
+        return "bg-yellow-500/20 text-yellow-400"
 
   default:
         return "bg-blue-500/20 text-green-400"

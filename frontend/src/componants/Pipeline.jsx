@@ -260,6 +260,8 @@ const [open, setOpen] = useState(false);
           AssignedTo: "",
           Description: "",
         });
+        setForm(false)
+        fetchPipelineDeals()
         toast.success(result.message);
       } else {
         toast.error(result.message || "envailid ");

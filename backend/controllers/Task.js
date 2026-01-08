@@ -94,7 +94,7 @@ export const opportunity = async (req, res) => {
       Description,
     } = req.body;
 
-    let oppo = await opportunityModel.create({
+    const dataToSave = {
       opportunitie,
       company_name,
       rate,
@@ -103,7 +103,13 @@ export const opportunity = async (req, res) => {
       lead_Source,
       AssignedTo,
       Description,
-    });
+    };
+
+    if (stage=="Close") {
+      dataToSave.closedAt=new Date()
+    }
+
+    let oppo = await opportunityModel.create(dataToSave);
     return res.status(200).json({ message: "Add Successfully" });
   } catch (error) {
     console.log(error);
@@ -121,33 +127,56 @@ export const GetOpportunity = async (req, res) => {
 
 export const editStage = async (req, res) => {
   try {
+    console.log("▶️ editStage called");
+    console.log("📥 Request body:", req.body);
+
     const { id, stage } = req.body;
 
     if (!id || !stage) {
+      console.error("❌ Missing id or stage", { id, stage });
       return res
         .status(400)
         .json({ message: "Missing required fields: id or stage" });
     }
 
+    const updateData = { stage };
+
+    if (stage === "Close") {
+      updateData.closedAt = new Date();
+      console.log("✅ Stage is Close, setting closedAt:", updateData.closedAt);
+    } else {
+      console.log("ℹ️ Stage is not Close, closedAt not modified");
+    }
+
+    console.log("📝 Update payload:", updateData);
+
     const updatedOpportunity = await opportunityModel.findByIdAndUpdate(
       id,
-      { stage },
+      updateData,
       { new: true, runValidators: true }
     );
 
     if (!updatedOpportunity) {
+      console.error("❌ Opportunity not found for id:", id);
       return res.status(404).json({ message: "Opportunity not found" });
     }
+
+    console.log("✅ Opportunity updated:", {
+      id: updatedOpportunity._id,
+      stage: updatedOpportunity.stage,
+      closedAt: updatedOpportunity.closedAt,
+    });
 
     return res.status(200).json({
       message: "Stage updated successfully",
       data: updatedOpportunity,
     });
   } catch (error) {
-    console.error("Error updating stage:", error);
+    console.error("🔥 Error in editStage:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 
 export const opportunityFilter = async (req, res) => {
@@ -316,5 +345,56 @@ export const FetchTasks = async (req, res) => {
   }
 };
 
+
+
+export const revenue = async (req, res) => {
+  try {
+    const data = await opportunityModel.aggregate([
+      {
+        $match: {
+          stage: "Close",
+          close_Date: { $ne: null },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: { $toDate: "$close_Date" } },
+            month: { $month: { $toDate: "$close_Date" } },
+          },
+          revenue: { $sum: { $toDouble: "$rate" } },
+        },
+      },
+      {
+        $sort: {
+          "_id.year": 1,
+          "_id.month": 1,
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          year: "$_id.year",
+          monthNumber: "$_id.month",
+          month: {
+            $arrayElemAt: [
+              [
+                "", "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+              ],
+              "$_id.month"
+            ]
+          },
+          revenue: 1,
+        },
+      },
+    ]);
+
+    res.status(200).json(data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Revenue calculation failed" });
+  }
+};
 
 

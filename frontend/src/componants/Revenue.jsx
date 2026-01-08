@@ -3,10 +3,38 @@ import { ChartBar, Contact,ChartNoAxesColumn, CircleCheck, LayoutDashboard, Sett
 import logo from "../assets/logo.png"
 import user from "../assets/user.png"
 import { NavLink } from "react-router-dom";
+import Chart from "./Chart"
+import { useEffect } from "react";
+import { useState } from "react";
 function Revenue() {
       const navLinkClass=({isActive})=>
     `flex items-center gap-3 text-gray-400 font-semibold
      ${isActive?"text-white" : "text-gray-400"}`
+
+const [data,setData]=useState([])
+       useEffect(() => {
+
+       const fetchDeal=async()=>{
+    try {
+      let res=await fetch("http://localhost:3000/api/tasks/filter-revenue")
+      res=await res.json()
+setData(res)
+    } catch (error) {
+      console.log(error);
+          
+    }
+  }
+    fetchDeal()
+  }, []);
+
+
+    console.log(data);
+    
+let sum=data.reduce((total,num)=>{
+    return total+num.revenue
+},0)
+console.log(sum);
+
   return  <>
       <div className="bg-[#111418] flex h-screen overflow-hidden">
 
@@ -68,10 +96,10 @@ function Revenue() {
 
 <div className="flex flex-col mt-10 md:flex-row gap-4">
 
-<div className="flex-1 backdrop-blur-lg p-3 bg-white/10 border border-white/10 rounded-lg">
+<div className="w-60 backdrop-blur-lg p-3 bg-white/10 border border-white/10 rounded-lg">
     <p className="text-[#9CABBA]">Total Revenue</p>
     <div className="flex gap-3 pb-2 pt-1">
-    <h2 className="text-white text-2xl font-semibold ">$124,500</h2>
+    <h2 className="text-white text-2xl font-semibold ">₹{sum}</h2>
      <p className="flex gap-1 items-center text-[#4ADE80]"><TrendingUp/>8.2%</p>
     </div>
 
@@ -79,41 +107,16 @@ function Revenue() {
 </div>
 
 
-<div className="flex-1 backdrop-blur-lg  p-3 bg-white/10 border border-white/10 rounded-lg">
-    <p className="text-[#9CABBA]">Sales Target</p>
-    <div className="flex gap-3 pb-2 pt-1">
-    <h2 className="text-white text-2xl font-semibold ">$150,000</h2>
-     <p className="flex gap-1 items-center text-[#4ADE80]">83% Reached</p>
-    </div>
-
-<p className="text-[#9CABBA]">vs. $115,050 last period</p>
-</div>
-
-
-<div className="flex-1 backdrop-blur-lg p-3 bg-white/10 border border-white/10 rounded-lg">
-    <p className="text-[#9CABBA]">Deals Won</p>
-    <div className="flex gap-3 pb-2 pt-1">
-    <h2 className="text-white text-2xl font-semibold ">18</h2>
-     <p className="flex gap-1 items-center text-[#4ADE80]"><TrendingUp/>3</p>
-    </div>
-
-<p className="text-[#9CABBA]">5 deals in pipeline</p>
-</div>
-<div className="flex-1 backdrop-blur-lg p-3 bg-white/10 border border-white/10 rounded-lg">
-    <p className="text-[#9CABBA]">Avg. Deal Size</p>
-    <div className="flex gap-3 pb-2 pt-1">
-    <h2 className="text-white text-2xl font-semibold ">$6,916</h2>
-     <p className="flex gap-1 items-center text-[#F87171]"><TrendingDown/>2.1%</p>
-    </div>
-
-<p className="text-[#9CABBA]">vs. $7,050 last period</p>
-</div>
 
 </div>
 
 
 
+<div>
+    <Chart/>
 </div>
+</div>
+
 
 
       </div>

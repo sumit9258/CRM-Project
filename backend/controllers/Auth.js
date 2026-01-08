@@ -131,3 +131,42 @@ export const Logout = async (req, res) => {
 export const IsAuthenticated = async (req, res) => {
   return res.status(200).json({ user: req.user });
 };
+
+
+
+
+
+export const EditProfile=async(req,res)=>{
+  try {
+    const {fullname,email}=req.body
+    const id=req.user._id
+    const user=await UserModel.findByIdAndUpdate(id,{
+      name:fullname,
+      email
+    },{new:true})
+return res.status(200).json({message:"profile updated"})
+  } catch (error) {
+    console.log(error);
+    
+  }
+}
+
+
+
+
+
+
+export const changeProfilePicture=async(req,res)=>{
+  try {
+    const user=await UserModel.findById(req.user._id)
+    if (!user) {
+      return res.status(404).json({message:"user not found"})
+    }
+    user.ProfilePicture=req.file.path
+    await user.save()
+   return res.status(200).json({message:"Profile Image Updated",image: user.ProfilePicture})
+  } catch (error) {
+    console.log(error);
+    
+  }
+}

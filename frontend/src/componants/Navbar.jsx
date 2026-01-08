@@ -9,9 +9,11 @@ import {
   ChartNoAxesColumn,
 } from "lucide-react";
 import logo from "../assets/logo.png";
-import user from "../assets/user.png";
+import check from "../assets/user.png";
+import { useAuth } from "../context/AuthContext";
 
 function Navbar() {
+const {user}=useAuth()
   const navLinkClass = ({ isActive }) =>
     `flex items-center gap-3 font-semibold ${
       isActive ? "text-white" : "text-gray-400"
@@ -59,9 +61,9 @@ function Navbar() {
         </div>
 
         <div className="flex gap-3 items-center">
-          <img src={user} className="w-10 rounded-full" />
+          <img src={user.ProfilePicture} className="w-15 h-15 object-cover rounded-full" />
           <div>
-            <h3 className="text-sm">Sales Lead</h3>
+            <h3 className="text-sm">{user?.name}</h3>
             <p className="text-xs">User</p>
           </div>
         </div>

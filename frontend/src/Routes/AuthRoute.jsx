@@ -6,7 +6,7 @@ const AuthRoute = ({ children }) => {
 
   if (loading) return null;
 
-  return user ? <Navigate to="/dashboard" replace /> : children;
+  return user ? <Navigate to="/dashboard"/> : children;
 };
 
 export default AuthRoute;

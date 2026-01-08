@@ -15,6 +15,7 @@ import Layout from './componants/Layout'
 
 import ProtectedRoute from './Routes/ProtectedRoutes'
 import AuthRoute from './Routes/AuthRoute'
+import Chart from './componants/Chart'
 
 function App() {
   return (
@@ -55,6 +56,8 @@ function App() {
           <Route path="/revenue" element={<Revenue />} />
           <Route path="/task" element={<Task />} />
           <Route path="/setting" element={<Setting />} />
+          
+          <Route path="/chart" element={<Chart />} />
         </Route>
       </Routes>
     </>

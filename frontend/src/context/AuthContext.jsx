@@ -6,7 +6,6 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
     const checkAuth = async () => {
       try {
         const res = await fetch("http://localhost:3000/api/auth/me", {
@@ -25,12 +24,13 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
       }
     };
+  useEffect(() => {
 
     checkAuth();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, setUser, loading }}>
+    <AuthContext.Provider value={{ user, setUser, loading,checkAuth }}>
       {children}
     </AuthContext.Provider>
   );

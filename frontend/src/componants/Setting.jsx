@@ -1,9 +1,36 @@
-import { ListFilter, LogOut, Plus, TrendingDown, TrendingUp } from 'lucide-react'
-import React from 'react'
+import {LogOut } from 'lucide-react'
+import React, { useState } from 'react'
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+import { toast } from 'react-toastify'
 
 function Setting() {
     const navigate=useNavigate()
+    const {user,setUser,checkAuth}=useAuth()
+const [imgLoading, setImgLoading] = useState(false)
+const [updateProfile, setUpdateProfile] = useState(false)
+
+    const [picture,setPicture]=useState(null)
+    
+useEffect(()=>{
+setProfile({fullname:user.name,email:user.email})
+setPicture(user.ProfilePicture)
+},[user])
+
+    const [profile,setProfile]=useState({
+        fullname:"",
+        email:""
+    })
+
+    const HandleChange=(e)=>{
+        const {name,value}=e.target
+        setProfile((pre)=>({
+            ...pre,
+            [name]:value
+        }))
+    }
+
 
     const HandleLogout=async()=>{
         try {
@@ -11,6 +38,7 @@ function Setting() {
                 method:"POST",
                 credentials:"include"
             })
+            setUser(null)
             navigate("/login")
         } catch (error) {
             console.log(error);
@@ -18,6 +46,56 @@ function Setting() {
         }
     }
 
+    const UpdateProfile=async()=>{
+        try {
+            setUpdateProfile(true)
+            let res=await fetch("http://localhost:3000/api/auth/update-profile",{
+                method:"PUT",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                credentials:"include",
+                body:JSON.stringify(profile)
+            }
+        )
+        if (res.ok) {
+            toast.success("updated succes fully")
+        }
+        } catch (error) {
+            console.log(error);
+            
+        } finally{
+            setUpdateProfile(false)
+        }
+    }
+
+    const UpdateProfilePicture=async(file)=>{
+        const formData=new FormData()
+        formData.append("image",file)
+        try {
+        setImgLoading(true)
+
+            let res=await fetch("http://localhost:3000/api/auth/update-profile-picture",{
+                method:"PUT",
+                credentials:"include",
+                body: formData
+            }
+        
+        )
+res=await res.json()
+setPicture(res.image)
+checkAuth()
+        } catch (error) {
+            console.log(error);
+            
+        } finally{
+            setImgLoading(false)
+        }
+    }
+
+
+
+   
   return (
     <>
     <div className="bg-[#111418] flex h-screen overflow-hidden">
@@ -37,30 +115,13 @@ function Setting() {
 </div>
 
 
-<div className="flex items-center mt-10 justify-between">
 
-<div className="text-white flex gap-5 ">
-    <select name="" id="" className="bg-[#283039] px-4 h-10 rounded-lg">
-        <option value="this month">This Month</option>
-        <option value="this month">This Year</option>
-        <option value="this month">This Quarter</option>
-        <option value="this month">Last Month</option>
-    </select>
-    <select className="bg-[#283039] rounded-lg px-4 ">
-        <option value="this month">All Category</option>
-        <option value="this month">Enterprise</option>
-        <option value="this month">Consulting</option>
-        <option value="this month">SMB</option>
-    </select>
-</div>
 
-<div className="text-white flex gap-4">
-    <button className="bg-[#283039] flex gap-2 items-center rounded-lg p-2 w-25"><ListFilter />Filter</button>
-    <button onClick={HandleLogout} className="bg-[#2563EB] w-30 font-semibold pl-4 gap-2 flex rounded-lg items-center"><LogOut />Log Out</button>
+<div className="text-white flex justify-end gap-4">
+    <button onClick={HandleLogout} className="bg-[#2563EB] w-30 h-10 font-semibold pl-4 gap-2 flex rounded-lg items-center"><LogOut />Log Out</button>
 </div>
 
 
-</div>
 
 
 
@@ -77,11 +138,30 @@ function Setting() {
 
 
     <div className='flex flex-col  w-40'>
-        <div className='w-24 h-24 rounded-full border-4 border-[#283039]'>
-            <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="" />
+       <div className='w-25 h-25 rounded-full border-3 border-[#283039] flex items-center justify-center'>
+    {imgLoading ? (
+        <div className="text-sm text-white animate-pulse">
+            Uploading...
         </div>
+    ) : (
+        <img
+            className='w-24 h-24 object-cover rounded-full'
+            src={picture || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
+            alt=""
+        />
+    )}
+</div>
+
         <div>
-    <input type="file" accept='image/*' className='hidden' id='profileimg'/>
+    <input type="file" name='image' onChange={(e)=>
+        {
+        const file=e.target.files[0]
+        if (file) {
+            UpdateProfilePicture(file)
+        } } 
+        } accept='image/*' className='hidden' id='profileimg'/>
+            
+        
 <label className='text-sm text-primary text-blue-500 font-medium hover:text-blue-400' htmlFor='profileimg'>change Image
 </label>
         </div>
@@ -93,13 +173,13 @@ function Setting() {
 
     <div>
         <label className='text-sm font-medium text-[#9cabba]'>Full Name</label> <br/>
-    <input className="w-full bg-[#283039] border-transparent focus:border-primary focus:ring-0 rounded-lg text-white text-sm py-2.5 px-4 placeholder-[#5c6b7a]" type="text" name='fullname' />
+    <input onChange={HandleChange} className="w-full bg-[#283039] border-transparent focus:border-primary focus:ring-0 rounded-lg text-white text-sm py-2.5 px-4 placeholder-[#5c6b7a]" type="text" value={profile.fullname} name='fullname' />
 
     </div>
     
     <div>
         <label className='text-sm font-medium text-[#9cabba]'>Email Address</label> <br/>
-    <input type="text" name='fullname' className='w-full bg-[#283039] border-transparent focus:border-primary focus:ring-0 rounded-lg text-white text-sm py-2.5 px-4 placeholder-[#5c6b7a]' />
+    <input type="email" value={profile.email} onChange={HandleChange} name='email' className='w-full bg-[#283039] border-transparent focus:border-primary focus:ring-0 rounded-lg text-white text-sm py-2.5 px-4 placeholder-[#5c6b7a]' />
 
     </div>
     <div>
@@ -108,7 +188,7 @@ function Setting() {
     </div>
 
    <div className='flex mt-5 justify-end'>
-    <button className='bg-primary bg-blue-700 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors shadow-lg shadow-primary/20'>Save Changes</button>
+    <button onClick={UpdateProfile}  className={`${updateProfile?"bg-blue-400 cursor-not-allowed":"bg-blue-700 hover:bg-blue-600"} bg-primary bg-blue-700 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors shadow-lg shadow-primary/20`}>{updateProfile?"Saving...":"Save Changes"}</button>
    </div>
 
 </div>

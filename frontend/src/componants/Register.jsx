@@ -1,6 +1,6 @@
 import React from "react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import abc from "../assets/goggle.png";
 import abb from "../assets/register.png";
 import logo from "../assets/logo.png";
@@ -9,15 +9,19 @@ import { Mail,Eye,Star,User, EyeOff, MoveRight } from 'lucide-react';
 import {GoogleAuthProvider,signInWithPopup} from "firebase/auth"
 import { auth } from "../../firebase";
 import { toast } from "react-toastify";
+import { useAuth } from "../context/AuthContext";
 
 
 function Register() {
+  const {setUser}=useAuth()
   const [data, setData] = useState({
     name: "",
     email: "",
     password: "",
     repassword: "",
   });
+
+  const navigate=useNavigate()
 
     const [inp,setInp]=useState(false)
   
@@ -44,6 +48,7 @@ try {
  let result=await res.json()
 
    if (res.ok) {
+    setUser(result.user)
         toast.success("register successfully")
       }else{
         toast.error(result.message||"envailid ")

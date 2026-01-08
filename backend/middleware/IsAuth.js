@@ -21,6 +21,8 @@ export const IsAuth = async (req, res, next) => {
       _id: user._id,
       name: user.name,
       email: user.email,
+      ProfilePicture:user.ProfilePicture
+
     };
 
     next();

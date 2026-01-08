@@ -9,9 +9,12 @@ import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "../../firebase";
 import { toast } from "react-toastify";
+import { useAuth } from "../context/AuthContext";
 
 function Login() {
+  const {setUser}=useAuth()
   const [data, setData] = useState({ email: "", password: "" });
+  const navigate=useNavigate()
   const [inp,setInp]=useState(false)
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -35,7 +38,7 @@ try {
   let result=await res.json()
 
   if (res.ok) {
-    
+       setUser(result.user)
       toast.success("Login successfully")
     }else{
       toast.error(result.message||"envailid ")
@@ -64,12 +67,13 @@ try {
           ,credentials:"include",
           body:JSON.stringify({name:result.user.displayName,email:result.user.email})
         })
+        let result=await res.json()
         if (res.ok) {
+       setUser(result.user)
+
             toast.success("register successfully")
           }
             toast.error("envailid ")
-        res=await res.json()
-        console.log(res);
         
       } catch (error) {
         console.log(error);

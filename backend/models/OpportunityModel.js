@@ -33,6 +33,8 @@ const oppoSchema=new Schema({
         type:String,
         required:true
     },
+    closedAt: { type: Date }
+
 })
 
 

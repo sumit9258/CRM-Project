@@ -118,11 +118,11 @@ fetchUsers()
     
                             <div>
                               <label className="text-white font-semibold">
-                                Close Date
+                                Due Time
                               </label>{" "}
                               <br />
                               <input
-                                type="date"
+                                type="time"
                                 className='w-full bg-[#283039] border border-transparent focus:border-primary focus:ring-0 rounded-lg text-white placeholder-[#9cabba]/50 px-4 py-2.5 transition-all outline-none'
                                 placeholder=""
                                 name="Due_Time"
