@@ -7,7 +7,7 @@ import Login from './componants/Login'
 import Register from './componants/Register'
 import Dashboard from './componants/Dashboard'
 import ContactP from './componants/Contact'
-import Pipeline from './componants/pipeline'
+
 import Revenue from './componants/Revenue'
 import Task from './componants/Task'
 import Setting from './componants/Setting'
@@ -16,7 +16,8 @@ import Layout from './componants/Layout'
 import ProtectedRoute from './Routes/ProtectedRoutes'
 import AuthRoute from './Routes/AuthRoute'
 import Chart from './componants/Chart'
-
+import Pipeline from './componants/Pipeline'
+import "./index.css"
 function App() {
   return (
     <>

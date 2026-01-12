@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { X, Filter, Calendar, CheckCircle2, RotateCcw } from "lucide-react";
 
 const TABS = ["Stage", "Assigned To", "Lead Source", "Close Date"];
 
@@ -26,7 +27,6 @@ export default function PipelineFilter({ onApply, onClose, anchorRef }) {
   const dropdownRef = useRef(null);
   const [activeTab, setActiveTab] = useState("Stage");
 
-  // ✅ FIXED FILTER STATE (date added properly)
   const [filters, setFilters] = useState({
     stage: [],
     AssignedTo: [],
@@ -35,7 +35,6 @@ export default function PipelineFilter({ onApply, onClose, anchorRef }) {
     closeDateTo: "",
   });
 
-  // outside click
   useEffect(() => {
     const handler = (e) => {
       if (
@@ -68,116 +67,137 @@ export default function PipelineFilter({ onApply, onClose, anchorRef }) {
   return (
     <div
       ref={dropdownRef}
-      className="absolute right-0 mt-2 w-[520px] rounded-xl
-                 bg-[#0f1115] border border-white/10 shadow-2xl z-50 text-white"
+      className="absolute right-0 mt-3 w-[550px] z-[100]
+                 rounded-[2.5rem] bg-[var(--bg-main)]/95 backdrop-blur-xl
+                 border border-white/40 shadow-2xl animate-in fade-in zoom-in duration-200"
     >
       {/* HEADER */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
-        <span className="font-semibold">Filter</span>
-        <button onClick={onClose} className="text-gray-400 hover:text-white">
-          ✕
+      <div className="flex justify-between items-center px-8 py-6 border-b border-black/5">
+        <div className="flex items-center gap-3">
+            <div className="p-2 bg-[var(--accent-main)] rounded-xl text-white">
+                <Filter size={18} />
+            </div>
+            <h2 className="text-xl font-black text-[var(--text-main)] tracking-tight">
+                Refine Pipeline
+            </h2>
+        </div>
+        <button 
+            onClick={onClose} 
+            className="p-2 hover:bg-black/5 rounded-full transition-colors text-[var(--text-main)]/40 hover:text-[var(--text-main)]"
+        >
+          <X size={20} />
         </button>
       </div>
 
-      {/* TABS */}
-      <div className="flex gap-6 px-4 pt-3 border-b border-white/10 text-sm">
+      {/* TAB NAVIGATION */}
+      <div className="flex gap-2 px-8 pt-4 overflow-x-auto no-scrollbar">
         {TABS.map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`pb-2 ${
-              activeTab === tab
-                ? "border-b-2 border-blue-500 text-blue-400 font-medium"
-                : "text-gray-400"
-            }`}
+            className={`whitespace-nowrap px-4 pb-3 text-xs font-black uppercase tracking-[0.1em] transition-all relative
+              ${activeTab === tab 
+                ? "text-[var(--accent-main)]" 
+                : "text-[var(--text-main)]/40 hover:text-[var(--text-main)]"
+              }`}
           >
             {tab}
+            {activeTab === tab && (
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-[var(--accent-main)] rounded-full animate-in slide-in-from-bottom-1" />
+            )}
           </button>
         ))}
       </div>
 
-      {/* OPTIONS */}
-      <div className="px-4 py-4 text-sm">
+      {/* CONTENT AREA */}
+      <div className="p-8 min-h-[280px]">
         {activeTab !== "Close Date" ? (
-          <div className="grid grid-cols-2 gap-4 bg-[#1a1d21] p-4 rounded-lg">
-            {OPTIONS[activeTab].map((item) => (
-              <label
-                key={item}
-                className="flex items-center gap-2 cursor-pointer text-gray-200"
-              >
-                <input
-                  type="checkbox"
-                  checked={filters[mapKey[activeTab]].includes(item)}
-                  onChange={() => toggle(mapKey[activeTab], item)}
-                  className="accent-blue-600"
-                />
-                <span>{item}</span>
-              </label>
-            ))}
+          <div className="grid grid-cols-2 gap-3 animate-in fade-in duration-300">
+            {OPTIONS[activeTab].map((item) => {
+              const isSelected = filters[mapKey[activeTab]].includes(item);
+              return (
+                <button
+                  key={item}
+                  onClick={() => toggle(mapKey[activeTab], item)}
+                  className={`flex items-center justify-between px-4 py-3 rounded-2xl border transition-all text-sm font-bold
+                    ${isSelected 
+                      ? "bg-[var(--accent-main)] border-[var(--accent-main)] text-white shadow-md shadow-[var(--accent-main)]/20" 
+                      : "bg-white/50 border-black/5 text-[var(--text-main)] hover:border-[var(--accent-soft)]"
+                    }`}
+                >
+                  <span className="truncate pr-2">{item}</span>
+                  {isSelected && <CheckCircle2 size={14} className="shrink-0" />}
+                </button>
+              );
+            })}
           </div>
         ) : (
-          // ✅ CLOSE DATE UI
-          <div className="flex gap-6 bg-[#1a1d21] p-4 rounded-lg">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-gray-400">From Date</label>
-              <input
-                type="date"
-                value={filters.closeDateFrom}
-                onChange={(e) =>
-                  setFilters((prev) => ({
-                    ...prev,
-                    closeDateFrom: e.target.value,
-                  }))
-                }
-                className="bg-[#111418] text-white border border-white/10
-                           rounded-md px-3 py-2 focus:outline-none focus:border-blue-500"
-              />
+          <div className="space-y-6 animate-in fade-in duration-300">
+            <div className="flex items-center gap-3 text-[var(--accent-main)] mb-2">
+                <Calendar size={18} />
+                <span className="text-sm font-black uppercase tracking-widest">Select Date Range</span>
             </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-gray-400">To Date</label>
-              <input
-                type="date"
-                value={filters.closeDateTo}
-                onChange={(e) =>
-                  setFilters((prev) => ({
-                    ...prev,
-                    closeDateTo: e.target.value,
-                  }))
-                }
-                className="bg-[#111418] text-white border border-white/10
-                           rounded-md px-3 py-2 focus:outline-none focus:border-blue-500"
-              />
+            <div className="flex gap-4">
+                <div className="flex-1 space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-main)]/40 ml-1">
+                    Closing From
+                  </label>
+                  <input
+                    type="date"
+                    value={filters.closeDateFrom}
+                    onChange={(e) =>
+                      setFilters((p) => ({ ...p, closeDateFrom: e.target.value }))
+                    }
+                    className="w-full h-12 rounded-2xl bg-white/70 border border-black/5 px-4 
+                               text-[var(--text-main)] font-semibold outline-none focus:ring-2 focus:ring-[var(--accent-main)] transition-all"
+                  />
+                </div>
+                <div className="flex-1 space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-main)]/40 ml-1">
+                    Closing To
+                  </label>
+                  <input
+                    type="date"
+                    value={filters.closeDateTo}
+                    onChange={(e) =>
+                      setFilters((p) => ({ ...p, closeDateTo: e.target.value }))
+                    }
+                    className="w-full h-12 rounded-2xl bg-white/70 border border-black/5 px-4 
+                               text-[var(--text-main)] font-semibold outline-none focus:ring-2 focus:ring-[var(--accent-main)] transition-all"
+                  />
+                </div>
             </div>
           </div>
         )}
       </div>
 
       {/* FOOTER */}
-      <div className="flex justify-between items-center px-4 py-3 border-t border-white/10">
+      <div className="flex items-center justify-between px-8 py-6 border-t border-black/5 bg-black/5 rounded-b-[2.5rem]">
         <button
           onClick={() => {
-            const emptyFilters = {
+            const empty = {
               stage: [],
               AssignedTo: [],
               lead_Source: [],
               closeDateFrom: "",
               closeDateTo: "",
             };
-            setFilters(emptyFilters);
-            onApply(emptyFilters);
+            setFilters(empty);
+            onApply(empty);
           }}
-          className="text-sm text-gray-400 hover:text-white"
+          className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[var(--text-main)]/40 hover:text-red-500 transition-colors"
         >
-          Clear
+          <RotateCcw size={14} />
+          Reset All
         </button>
 
         <button
           onClick={() => onApply(filters)}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700
-                     text-white rounded-md text-sm"
+          className="h-12 px-10 rounded-[1.25rem]
+                     bg-[var(--accent-main)] text-white font-bold text-sm
+                     shadow-lg shadow-[var(--accent-main)]/20 hover:scale-[1.03] active:scale-95 transition-all"
         >
-          Apply
+          Apply Filters
         </button>
       </div>
     </div>

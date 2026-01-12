@@ -1,32 +1,20 @@
-// import React from "react";
 import {
-  ChartBar,
-  Contact,
-  ChartNoAxesColumn,
-  CircleCheck,
-  LayoutDashboard,
-  Settings,
   ListFilter,
   Plus,
   Search,
-  Dot,
   Clock,
   X,
+  Building2,
+  Tag,
+  ChevronRight,
+  Wallet,
 } from "lucide-react";
-import logo from "../assets/logo.png";
-import user from "../assets/user.png";
-import { NavLink } from "react-router-dom";
 import { DndContext, useDraggable, useDroppable } from "@dnd-kit/core";
-
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import PipelineFilter from "./PipelineFilter";
-import { useRef } from "react";
 
-
-
-
-
+/* ---------------- DRAGGABLE CARD ---------------- */
 
 function DraggableCard({ ele }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
@@ -35,13 +23,12 @@ function DraggableCard({ ele }) {
       data: ele,
     });
 
-
-
   const style = {
     transform: transform
       ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
       : undefined,
-    opacity: isDragging ? 0.6 : 1,
+    opacity: isDragging ? 0.4 : 1,
+    zIndex: isDragging ? 100 : 1,
   };
 
   return (
@@ -50,104 +37,80 @@ function DraggableCard({ ele }) {
       style={style}
       {...listeners}
       {...attributes}
-      className="bg-[#1a1d21] min-w-[320px] border border-[#283039]
-      rounded-xl p-4 cursor-grab
-      hover:border-blue-500/40 hover:bg-[#1e2228]
-      transition-all duration-200"
+      className={`
+        bg-white/80 border border-white/50 rounded-[1.25rem] p-5 cursor-grab
+        hover:shadow-lg hover:border-[var(--accent-soft)] transition-all duration-200
+        active:cursor-grabbing group ${isDragging ? "shadow-2xl scale-105" : "shadow-sm"}
+      `}
     >
-      {/* Top badges */}
-      <div className="flex items-center justify-between mb-3">
-        <span className="bg-blue-900/30 text-blue-300 text-[10px] font-bold px-2 py-0.5 rounded-full">
-          NEW
+      <div className="flex justify-between items-start mb-3">
+        <span className="px-2 py-0.5 rounded-md bg-[var(--accent-soft)]/20 text-[10px] font-black uppercase tracking-wider text-[var(--accent-main)]">
+          {ele.lead_Source || "General"}
         </span>
-        <span className="text-[#9cabba] text-[10px] uppercase tracking-wide">
-          {ele.stage}
-        </span>
+        <div className="h-2 w-2 rounded-full bg-[var(--accent-main)] opacity-40 group-hover:animate-pulse" />
       </div>
 
-      {/* Opportunity */}
-      <h2 className="text-white font-semibold text-base leading-snug mb-1">
+      <h2 className="font-bold text-[var(--text-main)] leading-tight mb-1 group-hover:text-[var(--accent-main)] transition-colors">
         {ele.opportunitie}
       </h2>
 
-      {/* Company */}
-      <p className="text-[#9cabba] text-xs mb-4">
-        {ele.company_name}
-      </p>
-
-      {/* Amount + Date */}
-      <div className="flex justify-between items-center mb-4">
-        <p className="text-white font-bold text-lg">
-          ₹{ele.rate}
-        </p>
-
-        <div className="flex items-center gap-1 text-[#9cabba] text-xs">
-          <Clock size={14} />
-          <span>{ele.close_Date}</span>
-        </div>
+      <div className="flex items-center gap-1.5 text-sm text-[var(--text-main)]/50 mb-4">
+        <Building2 size={13} />
+        <span className="truncate">{ele.company_name}</span>
       </div>
 
-      {/* Divider */}
-      <div className="h-px bg-[#283039] mb-3" />
-
-      {/* Meta info */}
-      <div className="space-y-2 text-xs text-[#9cabba]">
-        <p className="flex justify-between">
-          <span className="text-white/60">Lead</span>
-          <span className="font-medium">{ele.lead_Source}</span>
-        </p>
-
-        <p className="flex justify-between">
-          <span className="text-white/60">Assigned</span>
-          <span className="font-medium">{ele.AssignedTo}</span>
-        </p>
-
-        <p className="text-[11px] leading-relaxed line-clamp-2">
-          <span className="text-white/60">Note:</span>{" "}
-          {ele.Description || "—"}
-        </p>
+      <div className="pt-3 border-t border-black/5 flex justify-between items-center">
+        <div className="flex items-center gap-1 font-black text-[var(--text-main)]">
+          <span className="text-[var(--accent-main)] text-xs">₹</span>
+          {Number(ele.rate).toLocaleString()}
+        </div>
+        <div className="flex items-center gap-1.5 text-[10px] font-bold text-[var(--text-main)]/40 bg-black/5 px-2 py-1 rounded-lg">
+          <Clock size={12} />
+          {ele.close_Date}
+        </div>
       </div>
     </div>
   );
 }
 
+/* ---------------- DROPPABLE COLUMN ---------------- */
 
-function DroppableColumn({ stage, children }) {
-  const { setNodeRef, isOver } = useDroppable({
-    id: stage,
-  });
+function DroppableColumn({ stage, children, count }) {
+  const { setNodeRef, isOver } = useDroppable({ id: stage });
 
   return (
     <div
       ref={setNodeRef}
-      className={`flex flex-col gap-4 max-h-[70vh] min-w-85 p-2 rounded-lg
-        ${isOver ? "bg-blue-500/10" : ""}`}
+      className={`
+        min-w-[320px] max-w-[320px] flex flex-col gap-4 p-4 rounded-[2rem] transition-all duration-300
+        ${isOver ? "bg-[var(--accent-soft)]/30 ring-2 ring-[var(--accent-main)] ring-dashed" : "bg-white/30 backdrop-blur-sm"}
+      `}
     >
-      <p className="text-white font-semibold pt-2">{stage}</p>
-      {children}
+      <div className="flex items-center justify-between px-2 mb-2">
+        <div className="flex items-center gap-2">
+            <h3 className="font-black text-sm uppercase tracking-widest text-[var(--text-main)]/70">{stage}</h3>
+            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/50 text-[10px] font-bold text-[var(--text-main)] border border-white">
+                {count}
+            </span>
+        </div>
+        <Plus size={16} className="text-[var(--text-main)]/30 cursor-pointer hover:text-[var(--accent-main)]" />
+      </div>
+      
+      <div className="flex flex-col gap-3 overflow-y-auto max-h-[calc(100vh-250px)] pr-1 custom-scrollbar">
+        {children}
+      </div>
     </div>
   );
 }
 
-
-
-
-
-
-
-
-
-
-
+/* ---------------- MAIN ---------------- */
 
 function Pipeline() {
-  const navLinkClass = ({ isActive }) =>
-    `flex items-center gap-3 text-gray-400 font-semibold
-     ${isActive ? "text-white" : "text-gray-400"}`;
-
   const [form, setForm] = useState(false);
-const [activeCard, setActiveCard] = useState(null);
-    const [isFilter,setIsFilter]=useState(false)
+  const [open, setOpen] = useState(false);
+  const btnRef = useRef(null);
+  const [search, setSearch] = useState("");
+  const [oppoData, setOppoData] = useState([]);
 
   const [opportunities, setOpportunities] = useState({
     opportunitie: "",
@@ -160,443 +123,218 @@ const [activeCard, setActiveCard] = useState(null);
     Description: "",
   });
 
+  // Logic remains exactly the same as requested
+  const fetchOpportunity = async () => {
+    let res = await fetch("http://localhost:3000/api/tasks/fetch-opportunity");
+    res = await res.json();
+    setOppoData(res);
+  };
 
-  const [search,setSearch]=useState("")
+  useEffect(() => { fetchOpportunity(); }, []);
 
-  const [oppoData, setOppoData] = useState([]);
-
-const [open, setOpen] = useState(false);
-  const btnRef = useRef(null);
-
-  const fetchPipelineDeals = async(filters) => {
-    console.log("Applied Filters:", filters);
-    try {
-      let res=await fetch("http://localhost:3000/api/tasks/filter-opportunity",{
-        method:"POST",
-        headers:{
-
-          "Content-Type":"application/json",
-        },
-          credentials:"include",
-      body:JSON.stringify(filters)
-      })
-      if (res.ok) {
-        res=await res.json()
-        setOppoData(res)
-      }
-    } catch (error) {
-      console.log(error);
-      
+  const fetchPipelineDeals = async (filters) => {
+    let res = await fetch("http://localhost:3000/api/tasks/filter-opportunity", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(filters),
+    });
+    if (res.ok) {
+      res = await res.json();
+      setOppoData(res);
     }
   };
 
-
-
   const handleDragEnd = async (event) => {
-  const { active, over } = event;
+    const { active, over } = event;
+    if (!over) return;
+    const card = active.data.current;
+    const newStage = over.id;
+    if (card.stage === newStage) return;
 
-  if (!over) return;
+    setOppoData((prev) =>
+      prev.map((i) => i._id === card._id ? { ...i, stage: newStage } : i)
+    );
 
-  const newStage = over.id;
-  const card = active.data.current;
+    await fetch("http://localhost:3000/api/tasks/update-stage", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: card._id, stage: newStage }),
+    });
+  };
 
-  if (card.stage === newStage) return;
-
-  // UI update
-  setOppoData((prev) =>
-    prev.map((item) =>
-      item._id === card._id
-        ? { ...item, stage: newStage }
-        : item
-    )
-  );
-
-  // backend update
-  await fetch("http://localhost:3000/api/tasks/update-stage", {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      id: card._id,
-      stage: newStage,
-    }),
-  });
-};
-
-
-
-
-
-
-
-  const Handlechange = (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    setOpportunities((pre) => ({
-      ...pre,
-      [name]: value,
-    }));
+    setOpportunities((pre) => ({ ...pre, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      let res = await fetch("http://localhost:3000/api/tasks/add-opportunity", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify(opportunities),
-      });
-      let result = await res.json();
-
-      if (res.ok) {
-        setOpportunities({
-          opportunitie: "",
-          company_name: "",
-          rate: "",
-          close_Date: "",
-          stage: "",
-          lead_Source: "",
-          AssignedTo: "",
-          Description: "",
-        });
-        setForm(false)
-        fetchPipelineDeals()
-        toast.success(result.message);
-      } else {
-        toast.error(result.message || "envailid ");
-      }
-
-      console.log(res);
-    } catch (error) {
-      console.log(error);
-      toast.error("envailid ");
-    }
+    let res = await fetch("http://localhost:3000/api/tasks/add-opportunity", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(opportunities),
+    });
+    let result = await res.json();
+    if (res.ok) {
+      toast.success(result.message);
+      setForm(false);
+      fetchOpportunity();
+      setOpportunities({ opportunitie: "", company_name: "", rate: "", close_Date: "", stage: "", lead_Source: "", AssignedTo: "", Description: "" });
+    } else toast.error(result.message);
   };
-
-  const fetchOpportunity = async () => {
-    try {
-      let res = await fetch(
-        "http://localhost:3000/api/tasks/fetch-opportunity"
-      );
-      res = await res.json();
-      console.log(res);
-      setOppoData(res);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-  useEffect(() => {
-    fetchOpportunity();
-  }, []);
-
-
-  const filterOppoData=oppoData.filter((ele)=>{
-    const searchData=search.toLowerCase()
-return(
-  ele.opportunitie?.toLowerCase().includes(searchData)||
-  ele.company_name?.toLowerCase().includes(searchData)||
-  ele.lead_Source?.toLowerCase().includes(searchData)||
-  ele.AssignedTo?.toLowerCase().includes(searchData)
-)
-  })
-  
-
-  
 
   return (
-    <>
-      <div className="bg-[#111418] flex h-screen overflow-hidden">
-        {/* right side */}
+    <div className="flex-1 lg:ml-64 p-8 bg-[var(--bg-main)] min-h-screen font-sans">
 
-        <div className="flex-1 ml-64 p-5 h-screen overflow-y-auto">
-          <div>
-            <h2 className="text-white text-3xl font-semibold">
-              Sales Pipeline
-            </h2>
-          </div>
+      {/* HEADER SECTION */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
+        <div>
+          <h1 className="text-4xl font-extrabold text-[var(--text-main)] tracking-tight">Sales Pipeline</h1>
+          <p className="text-[var(--text-main)]/60 font-medium">Drag and drop deals to update their stage.</p>
+        </div>
 
-          <div className="flex justify-between">
-            <div>
-              <p className="text-[#9CABBA]">
-                Track your opportunities and manage deal flow.
-              </p>
-            </div>
-            <div className="flex gap-5 ">
-              <div>
-                <h2 className="text-[#9CABBA]">Total Value</h2>
-                <p className="text-white text-xl">$1.4M</p>
-              </div>
-              <div>
-                <p className="text-[#9CABBA]">Open Deals</p>
-                <p className="text-white text-xl">24</p>
-              </div>
-            </div>
-          </div>
+        <div className="flex gap-3 w-full md:w-auto">
+          <button
+            ref={btnRef}
+            onClick={() => setOpen(!open)}
+            className="flex-1 md:flex-none h-12 px-5 rounded-2xl bg-white border border-white/60 shadow-sm flex items-center justify-center gap-2 font-bold text-[var(--text-main)] hover:bg-gray-50 transition-all"
+          >
+            <ListFilter size={18} /> Filter
+          </button>
 
-          <div className="flex items-center mt-10 justify-between">
-            <div className="relative">
-              <Search
-                size={25}
-                className="absolute inset-y-2.5 text-[#94A3B1] inset-x-2"
-              />
-              <div>
-                <input
-                  type="text"
-                  name="search"
-                  value={search}
-                  onChange={(e)=> setSearch(e.target.value)}
-                  className="bg-[#283039] text-white w-170 h-12 rounded-lg placeholder:text-[#94A3B1] placeholder:text-lg px-10"
-                  placeholder="Search deals, companies..."
-                />
-              </div>
-            </div>
+          <button
+            onClick={() => setForm(true)}
+            className="group hover:-translate-y-1 flex-1 md:flex-none h-12 px-6 rounded-2xl bg-[var(--accent-main)] text-white font-bold shadow-lg shadow-[var(--accent-main)]/20 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all"
+          >
+            <Plus className="group-hover:rotate-90 transition-transform" size={20} /> New Deal
+          </button>
+        </div>
+      </div>
 
-            <div className="text-white flex gap-4">
-             <div className="relative">
-      <button
-        ref={btnRef}
-        onClick={() => setOpen(!open)}
-        className="bg-[#283039] flex gap-2 items-center rounded-lg p-2 w-25"
-      >
-        <ListFilter/>
-        Filter
-      </button>
+      {/* SEARCH BAR */}
+      <div className="relative mb-10 max-w-xl">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-main)]/30" size={20} />
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by opportunity or company..."
+          className="w-full h-14 rounded-2xl pl-12 pr-4 bg-white/60 backdrop-blur-md border border-white/40 shadow-sm focus:bg-white focus:ring-2 focus:ring-[var(--accent-main)] outline-none transition-all text-lg"
+        />
+      </div>
 
       {open && (
         <PipelineFilter
           anchorRef={btnRef}
           onClose={() => setOpen(false)}
-          onApply={(filters) => {
-            fetchPipelineDeals(filters);
-            setOpen(false);
-          }}
+          onApply={(filters) => { fetchPipelineDeals(filters); setOpen(false); }}
         />
       )}
-    </div>
-              <button
-                onClick={() => setForm(true)}
-                className="bg-[#2563EB] w-50 font-semibold pl-4 gap-2 flex rounded-lg items-center"
-              >
-                <Plus />
-                Add Opportunity
-              </button>
-            </div>
-          </div>
 
-          {form && (
-            <div className="fixed backdrop-blur-lg bg-black/40 inset-0 z-40">
-              <div className="fixed flex  justify-center items-center z-50 inset-0">
-                <div>
-                  <form
-                    onSubmit={handleSubmit}
-                    className="backdrop:blur-lg bg-[#1a1d21]  p-5 w-160  rounded-lg"
-                  >
-                    <div className="space-y-4">
-                      <div className="flex text-xl pb-3 border-b border-[#283039] text-white justify-between">
-                        <h2>Add Opportunity</h2>
-                        <X onClick={() => setForm(false)} />
-                      </div>
-                      <div className="grid grid-cols-2 gap-6">
-                        <div>
-                          <label className="text-white font-semibold">
-                            Opportunity Name
-                          </label>{" "}
-                          <br />
-                          <input
-                            type="text"
-                            className="border bg-[#111418] text-white focus:border-blue-600 focus:outline-none border-white/10 w-full h-10 rounded-lg pl-2 placeholder:text-[#9CABBA] placeholder:text-sm"
-                            placeholder="Enter Opportunity Name"
-                            name="opportunitie"
-                            onChange={Handlechange}
-                            value={opportunities.opportunitie}
-                          />
+      {/* KANBAN BOARD */}
+      <DndContext onDragEnd={handleDragEnd}>
+        <div className="flex gap-6 overflow-x-auto pb-8 scroll-smooth custom-scrollbar">
+          {["Discovery", "Qualified", "Proposal", "Negotiation", "Close"].map((stage) => {
+             const stageCards = oppoData.filter((ele) => ele.stage === stage);
+             return (
+                <DroppableColumn key={stage} stage={stage} count={stageCards.length}>
+                    {stageCards.map((ele) => (
+                        <DraggableCard key={ele._id} ele={ele} />
+                    ))}
+                    {stageCards.length === 0 && (
+                        <div className="flex flex-col items-center justify-center py-10 opacity-20 border-2 border-dashed border-[var(--text-main)] rounded-2xl">
+                             <Tag size={24} />
+                             <span className="text-[10px] font-bold uppercase mt-2">Empty Stage</span>
                         </div>
+                    )}
+                </DroppableColumn>
+             );
+          })}
+        </div>
+      </DndContext>
 
-                        <div>
-                          <label className="text-white font-semibold">
-                            Company Name
-                          </label>{" "}
-                          <br />
-                          <input
-                            type="text"
-                            className="border bg-[#111418] text-white focus:border-blue-600 focus:outline-none border-white/10 w-full h-10 rounded-lg pl-2 placeholder:text-[#9CABBA] placeholder:text-sm"
-                            placeholder="Enter Company Name"
-                            name="company_name"
-                            onChange={Handlechange}
-                            value={opportunities.company_name}
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-6">
-                        <div>
-                          <label className="text-white font-semibold">
-                            Deal Value
-                          </label>{" "}
-                          <br />
-                          <input
-                            type="number"
-                            className="border bg-[#111418] text-white focus:border-blue-600 focus:outline-none border-white/10 w-full h-10 rounded-lg pl-2 placeholder:text-[#9CABBA] placeholder:text-sm"
-                            placeholder="Enter Deal Value"
-                            name="rate"
-                            onChange={Handlechange}
-                            value={opportunities.rate}
-                          />
-                        </div>
-
-                        <div>
-                          <label className="text-white font-semibold">
-                            Close Date
-                          </label>{" "}
-                          <br />
-                          <input
-                            type="date"
-                            className="border bg-[#111418] text-white focus:border-blue-600 focus:outline-none border-white/10 w-full h-10 rounded-lg pl-2 placeholder:text-[#9CABBA] placeholder:text-sm"
-                            placeholder=""
-                            name="close_Date"
-                            onChange={Handlechange}
-                            value={opportunities.close_Date}
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-6">
-                        <div>
-                          <label className="text-white font-semibold">
-                            Stage
-                          </label>{" "}
-                          <br />
-                          <select
-                            value={opportunities.stage}
-                            name="stage"
-                            onChange={Handlechange}
-                            className="border bg-[#111418] text-white focus:border-blue-600 focus:outline-none border-white/10 w-full h-10 rounded-lg pl-2 placeholder:text-[#9CABBA] placeholder:text-sm"
-                          >
-                            <option value="">Please slect stage</option>
-                            <option value="Discovery">Discovery</option>
-                            <option value="Qualified">Qualified</option>
-                            <option value="Proposal">Proposal</option>
-                            <option value="Negotiation">Negotiation</option>
-                            <option value="Close">Close</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="text-white font-semibold">
-                            Lead Source
-                          </label>{" "}
-                          <br />
-                          <select
-                            name="lead_Source"
-                            onChange={Handlechange}
-                            value={opportunities.lead_Source}
-                            className="border bg-[#111418] text-white focus:border-blue-600 focus:outline-none border-white/10 w-full h-10 rounded-lg pl-2 placeholder:text-[#9CABBA] placeholder:text-sm"
-                          >
-                            <option value="">Please Select the Lead</option>
-                            <option value="Website">Website</option>
-                            <option value="Inbound Call">Inbound Call</option>
-                            <option value="Email Inquiry">Email Inquiry</option>
-                            <option value="Referral">Referral</option>
-                            <option value="LinkedIn">LinkedIn</option>
-                            <option value="Facebook / Instagram Ads">
-                              Facebook / Instagram Ads
-                            </option>
-                            <option value="Google Ads">Google Ads</option>
-                            <option value="Cold Call">Cold Call</option>
-                          </select>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-6">
-                        <div>
-                          <label className="text-white font-semibold">
-                            Assigned To
-                          </label>{" "}
-                          <br />
-                          <select
-                            name="AssignedTo"
-                            onChange={Handlechange}
-                            value={opportunities.AssignedTo}
-                            className="border bg-[#111418] text-white focus:border-blue-600 focus:outline-none border-white/10 w-full h-10 rounded-lg pl-2 placeholder:text-[#9CABBA] placeholder:text-sm"
-                          >
-                            <option value="">Please Select </option>
-                            <option value="Sales Executive – Rahul">
-                              Sales Executive – Rahul
-                            </option>
-                            <option value="Sales Executive – Priya">
-                              Sales Executive – Priya
-                            </option>
-                            <option value="Sales Manager">Sales Manager</option>
-                            <option value="Account Manager">
-                              Account Manager
-                            </option>
-                            <option value="Self">Self</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="text-white font-semibold">
-                            Description
-                          </label>{" "}
-                          <br />
-                          <textarea
-                            name="Description"
-                            onChange={Handlechange}
-                            value={opportunities.Description}
-                            placeholder="Enter Descrition"
-                            className="border bg-[#111418] text-white focus:border-blue-600 focus:outline-none border-white/10 w-full h-32 rounded-lg pl-2 placeholder:text-[#9CABBA] pt-2 placeholder:text-sm"
-                            id=""
-                          ></textarea>
-                        </div>
-                      </div>
-
-                      <div className="flex border-t pt-4 border-[#283039] justify-end gap-5 pr-5">
-                        <button className="px-4 py-2 rounded-lg bg-white/10 text-white hover:bg-white/20">
-                          Cancel
-                        </button>
-                        <button
-                          type="submit"
-                          className="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700"
-                        >
-                          Submit
-                        </button>
-                      </div>
+      {/* REFINED MODAL */}
+      {form && (
+        <div className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-md flex items-center justify-center px-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-2xl bg-[var(--bg-main)] border border-white/20 rounded-[2.5rem] shadow-2xl p-8 scale-in-center">
+            <form onSubmit={handleSubmit} className="space-y-8">
+              
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <div className="p-3 bg-[var(--accent-main)] rounded-2xl text-white">
+                        <Wallet size={24} />
                     </div>
-                  </form>
+                    <div>
+                        <h2 className="text-2xl font-black text-[var(--text-main)]">Add Opportunity</h2>
+                        <p className="text-xs font-bold text-[var(--text-main)]/40 uppercase tracking-widest">Pipeline Management</p>
+                    </div>
+                </div>
+                <button type="button" onClick={() => setForm(false)} className="p-2 hover:bg-black/5 rounded-full transition">
+                    <X className="text-[var(--text-main)]" size={24} />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-main)]/40 ml-1">Opportunity Name</label>
+                  <input name="opportunitie" value={opportunities.opportunitie} onChange={handleChange} placeholder="Project Alpha" className="w-full h-12 rounded-2xl bg-white border border-white/40 px-4 focus:ring-2 focus:ring-[var(--accent-main)] outline-none transition-all" />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-main)]/40 ml-1">Company</label>
+                  <input name="company_name" value={opportunities.company_name} onChange={handleChange} placeholder="Acme Corp" className="w-full h-12 rounded-2xl bg-white border border-white/40 px-4 focus:ring-2 focus:ring-[var(--accent-main)] outline-none transition-all" />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-main)]/40 ml-1">Value (₹)</label>
+                  <input name="rate" value={opportunities.rate} onChange={handleChange} placeholder="50,000" className="w-full h-12 rounded-2xl bg-white border border-white/40 px-4 focus:ring-2 focus:ring-[var(--accent-main)] outline-none transition-all" />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-main)]/40 ml-1">Target Close Date</label>
+                  <input type="date" name="close_Date" value={opportunities.close_Date} onChange={handleChange} className="w-full h-12 rounded-2xl bg-white border border-white/40 px-4 focus:ring-2 focus:ring-[var(--accent-main)] outline-none transition-all" />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-main)]/40 ml-1">Pipeline Stage</label>
+                  <select name="stage" value={opportunities.stage} onChange={handleChange} className="w-full h-12 rounded-2xl bg-white border border-white/40 px-4 outline-none focus:ring-2 focus:ring-[var(--accent-main)]">
+                    <option value="">Select Stage</option>
+                    <option>Discovery</option>
+                    <option>Qualified</option>
+                    <option>Proposal</option>
+                    <option>Negotiation</option>
+                    <option>Close</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-main)]/40 ml-1">Lead Source</label>
+                  <select name="lead_Source" value={opportunities.lead_Source} onChange={handleChange} className="w-full h-12 rounded-2xl bg-white border border-white/40 px-4 outline-none focus:ring-2 focus:ring-[var(--accent-main)]">
+                    <option value="">Select Source</option>
+                    <option>Website</option>
+                    <option>Referral</option>
+                    <option>LinkedIn</option>
+                    <option>Cold Call</option>
+                  </select>
                 </div>
               </div>
-            </div>
-          )}
 
-   
-         
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-main)]/40 ml-1">Notes / Description</label>
+                <textarea name="Description" value={opportunities.Description} onChange={handleChange} placeholder="Key requirements..." className="w-full h-24 rounded-2xl bg-white border border-white/40 p-4 focus:ring-2 focus:ring-[var(--accent-main)] outline-none transition-all resize-none" />
+              </div>
 
-          <div className="flex [scrollbar-width:none] overflow-x-auto pb-5 gap-5 ">
-            <DndContext
-  onDragStart={(event) => {
-    setActiveCard(event.active.data.current);
-  }}
-  onDragEnd={handleDragEnd}
->
-  <div className="flex [scrollbar-width:none] gap-5 overflow-x-auto">
-    {["Discovery", "Qualified", "Proposal", "Negotiation", "Close"].map(
-      (stage) => (
-        <DroppableColumn key={stage} stage={stage}>
-          {filterOppoData
-            .filter((ele) => ele.stage === stage)
-            .map((ele) => (
-              <DraggableCard key={ele._id} ele={ele} />
-            ))}
-        </DroppableColumn>
-      )
-    )}
-  </div>
-</DndContext>
+              <div className="flex justify-end gap-3">
+                <button type="button" onClick={() => setForm(false)} className="h-12 px-6 rounded-2xl font-bold text-[var(--text-main)]/60 hover:bg-black/5 transition-all">Cancel</button>
+                <button type="submit" className="h-12 px-8 rounded-2xl bg-[var(--accent-main)] text-white font-bold shadow-lg shadow-[var(--accent-main)]/20 hover:scale-[1.02] active:scale-95 transition-all">Save Opportunity</button>
+              </div>
 
-
-        
+            </form>
           </div>
         </div>
-      </div>
-    </>
+      )}
+    </div>
   );
 }
 

@@ -13,11 +13,6 @@ const ContactSchema=new Schema({
         type:String,
         required:true
     },
-    company_name:{
-        type:String,
-        required:true
-
-    },
     linked:{
         type:String,
         required:true
@@ -28,11 +23,7 @@ const ContactSchema=new Schema({
         required:true
 
     },
-    Assign:{
-        type:String,
-        required:true
-
-    }
+    
 },{timestamps:true})
 
 const ContactModel= mongoose.model("lead",ContactSchema)

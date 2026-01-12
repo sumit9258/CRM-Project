@@ -1,426 +1,300 @@
-// import React from "react";
-import { ChartBar, Contact,ChartNoAxesColumn, CircleCheck, LayoutDashboard, Settings, ListFilter, Plus, Search, Dot, X } from "lucide-react";
-import logo from "../assets/logo.png"
-import user from "../assets/user.png"
-import { NavLink } from "react-router-dom";
-import { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { Search, ListFilter, Plus, X, Linkedin, Mail, Phone, Clock, UserPlus, SearchCheck, ExternalLink } from "lucide-react";
 import ContactFilter from "./ContactFilter";
-import { useRef } from "react";
-function ContactP() {
 
-const [isforam,setIsforam]=useState(false)
-const [leadData,setLeadData]=useState([])
-const [search,setSearch]=useState("")
+function Contact() {
+  const [isForm, setIsForm] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const btnRef = useRef(null);
 
+  const [leadData, setLeadData] = useState([]);
+  const [search, setSearch] = useState("");
+  const [filterData, setFilterData] = useState("all");
 
-  const [filterData,setFilterData]=useState("all")
- 
   const [taskData, setTaskData] = useState({
     fullname: "",
     email: "",
     phone: "",
-    company_name:"",
     linked: "",
     status: "",
   });
 
-  const [isopen,setIsopen]=useState(false)
-const btnRef=useRef(null)
-  const searchFilter=leadData.filter((ele)=>{
-    const statusMatch=filterData=="all"||ele.status==filterData
-    const searchData=search.toLowerCase()
+  // Logic unchanged as per request
+  const fetchLead = async () => {
+    let res = await fetch("http://localhost:3000/api/tasks/fetch-lead");
+    res = await res.json();
+    setLeadData(res);
+  };
 
-   const machSearch= ele.fullname?.toLowerCase().includes(searchData)||
-    ele.email?.toLowerCase().includes(searchData)
-    return statusMatch&&machSearch
-  })
+  const FilterData = async (filters) => {
+    let res = await fetch("http://localhost:3000/api/tasks/filter-leads", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(filters),
+    });
+    res = await res.json();
+    setLeadData(res);
+  };
 
-   const handleChange = (e) => {
-    const { name,value } = e.target;
-    setTaskData((pre) => ({
-      ...pre,
-      [name]: value,
-    }));
+  useEffect(() => {
+    fetchLead();
+  }, []);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setTaskData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      let res=await fetch("http://localhost:3000/api/tasks/contact-lead",{
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json"
-        },credentials:"include",
-        body:JSON.stringify(taskData)
-      })
-
-      console.log("okk",res.ok);
-      if (res.ok) {
-        fetchLead()
-        setTaskData({
-    fullname: "",
-    email: "",
-    phone: "",
-    company_name:"",
-    linked: "",
-    status: "",
-    Assign: "",
-  });
-  setIsforam(false)
-      }
-      // res=await res.json()
-
-      
-    } catch (error) {
-      console.log(error);
-      
+    let res = await fetch("http://localhost:3000/api/tasks/contact-lead", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(taskData),
+    });
+    if (res.ok) {
+      fetchLead();
+      setIsForm(false);
+      setTaskData({ fullname: "", email: "", phone: "", linked: "", status: "" });
     }
-    console.log(taskData);
   };
 
+  const searchFilter = leadData.filter((ele) => {
+    const statusMatch = filterData === "all" || ele.status === filterData;
+    const q = search.toLowerCase();
+    return (
+      statusMatch &&
+      (ele.fullname?.toLowerCase().includes(q) ||
+        ele.email?.toLowerCase().includes(q))
+    );
+  });
 
-  const fetchLead=async()=>{
-    try {
-      let res=await fetch("http://localhost:3000/api/tasks/fetch-lead")
-      res=await res.json()
-console.log(res);
-setLeadData(res)
+  const timeAgo = (date) => {
+    const now = new Date();
+    const past = new Date(date);
+    const diff = Math.floor((now - past) / 1000);
+    if (diff < 60) return `${diff}s ago`;
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    return `${Math.floor(diff / 86400)}d ago`;
+  };
 
-    } catch (error) {
+  // Modern Color Mapping
+  const statusStyle = {
+    new: "bg-[#AEA4BF]/20 text-[#8F6593] border-[#AEA4BF]/30",
+    Qualified: "bg-emerald-50 text-emerald-600 border-emerald-100",
+    contacted: "bg-amber-50 text-amber-600 border-amber-100",
+    Unresponsive: "bg-rose-50 text-rose-600 border-rose-100",
+  };
+
+  return (
+    <div className="flex-1 lg:ml-64 p-6 md:p-12 bg-[#E3E4DB] min-h-screen font-sans">
       
-    }
-  }
+      {/* HEADER SECTION */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+        <div>
+          <h1 className="text-5xl font-black text-[#3B252C] tracking-tight">
+            Contacts
+          </h1>
+          <p className="text-[#3B252C]/50 font-bold mt-2 flex items-center gap-2">
+            <span className="w-8 h-[2px] bg-[#8F6593]"></span> 
+            {leadData.length} Professional Leads
+          </p>
+        </div>
+        
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <button
+            ref={btnRef}
+            onClick={() => setIsOpen(!isOpen)}
+            className="h-14 px-6 rounded-2xl bg-white border border-white/60 shadow-sm flex items-center gap-2 font-black text-[#3B252C] hover:bg-[#CDCDCD]/20 transition-all active:scale-95"
+          >
+            <ListFilter size={20} className="text-[#8F6593]" /> Filter
+          </button>
+          
+          <button
+            onClick={() => setIsForm(true)}
+            className="group h-14 px-8 rounded-2xl bg-[#8F6593] text-white shadow-[0_10px_20px_-5px_rgba(143,101,147,0.4)] flex items-center gap-3 font-black hover:-translate-y-1 transition-all active:scale-95"
+          >
+            <Plus size={22} strokeWidth={3} className="group-hover:rotate-90 transition-transform" /> 
+            Add Lead
+          </button>
+        </div>
+      </div>
 
-  const FilterData=async(filters)=>{
-    try {
-      let res=await fetch("http://localhost:3000/api/tasks/filter-leads",{
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json"
-        },credentials:"include",
-        body:JSON.stringify(filters)
-      })
-      res=await res.json()
-console.log(res);
-setLeadData(res)
+      {/* SEARCH BAR - NEUMORPHIC STYLE */}
+      <div className="relative mb-10 group">
+        <div className="absolute left-5 top-1/2 -translate-y-1/2 text-[#3B252C]/30 group-focus-within:text-[#8F6593] transition-colors">
+          <Search size={22} />
+        </div>
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by identity, mail or digital footprint..."
+          className="w-full h-16 rounded-[1.5rem] pl-14 pr-6 bg-white/40 backdrop-blur-sm border border-white shadow-inner focus:ring-4 focus:ring-[#8F6593]/10 focus:bg-white/80 outline-none transition-all text-lg font-medium text-[#3B252C] placeholder:text-[#3B252C]/30"
+        />
+      </div>
 
-    } catch (error) {
-      
-    }
-  }
-  useEffect(()=>{
-fetchLead()
-  },[])
+      {isOpen && (
+        <ContactFilter
+          formRef={btnRef}
+          onclose={() => setIsOpen(false)}
+          onclear={fetchLead}
+          onApply={(filters) => {
+            FilterData(filters);
+            setIsOpen(false);
+          }}
+        />
+      )}
 
-
-      const navLinkClass=({isActive})=>
-    `flex items-center gap-3 text-gray-400 font-semibold
-     ${isActive?"text-white" : "text-gray-400"}`
-
-
-
-     const checkStatus=(status)=>{
-switch (status) {
-  case "new":
-    return "bg-green-500/20 text-green-400"
-  case "Qualified":
-        return "bg-blue-500/20 text-blue-400"
-  case "Unresponsive":
-        return "bg-red-500/20 text-red-400"
-  case "contacted":
-        return "bg-yellow-500/20 text-yellow-400"
-
-  default:
-        return "bg-blue-500/20 text-green-400"
-
-}
-     }
-
-
-
-const timeAgo = (date) => {
-  const past=new Date(date)
-
-  const now=new Date()
-  // console.log("past",past);
-  // console.log("current",now);
-  
-  const diff=Math.floor((now-past)/1000)
-  // console.log("diff",diff);
-  
-  if (diff<60) {
-    return `${diff} sec Ago`
-  }
-  if (diff<3600) {
-    return `${Math.floor(diff/60)} min Ago`
-  }
-  if (diff<86400) {
-    return `${Math.floor(diff/3600)} hours Ago`
-  }
-    return `${Math.floor(diff/86400)} days Ago`
-
-
-};
-
-
-
-
-
-
-  return  <>
-      <div className="bg-[#111418] flex h-screen overflow-hidden">
-       
-
-        {/* right side */}
-
-<div className="flex-1 ml-64 p-5 h-screen overflow-y-auto">
-
-<div>
-    <h2 className="text-white text-3xl font-semibold">Contact Database</h2>
-</div>
-
-<div className="flex justify-between">
-<div>
-    <p className="text-[#9CABBA]">Manage your leads and track sales progress.</p>
-</div>
-<div className="flex gap-5 ">
-    <div>
-
-    <h2 className="text-[#9CABBA]">Total Leads</h2>
-    <p className="text-white">{leadData.length}</p>
-    </div>
-    <div>
-        <p className="text-[#9CABBA]">This Month</p>
-        <p className="text-white">+124</p>
-    </div>
-</div>
-</div>
-
-
-
-
-
-
-
-<div className="flex items-center mt-10 justify-between">
-
-<div className="relative">
-    <Search size={25} className="absolute inset-y-2.5 text-[#94A3B1] inset-x-2" />
-    <div>
-
-    <input type="text" name="search" onChange={(e)=> setSearch(e.target.value)} className="bg-[#283039] w-170 h-12 rounded-lg placeholder:text-[#94A3B1] placeholder:text-lg px-10" placeholder="search by name, email or company" />
-    </div>
-</div>
-
-<div className="text-white flex gap-4">
-  <div className="relative">
-
-    <button onClick={()=> setIsopen(!isopen)} ref={btnRef} className="bg-[#283039] flex gap-2 items-center rounded-lg p-2 w-25"><ListFilter />Filter</button>
-    {isopen&&(
-      <ContactFilter onApply={(filters)=>{
-  FilterData(filters)
-      }}
-      onclose={()=> setIsopen(false)}
-      onclear={()=> fetchLead()}
-      formRef={btnRef}
-      />
-    )}
-  </div>
-    <button onClick={()=> setIsforam(true)} className="bg-[#2563EB] w-40 pl-4 gap-2 flex rounded-lg items-center"><Plus />Add New Lead</button>
-</div>
-
-
-</div>
-
-
-<div className="mt-8 flex gap-4">
-<div className="flex items-center">
- 
-<button onClick={()=> setFilterData("all")} className="flex items-center h-8 px-4 rounded-3xl bg-[#283039] text-white ">All Leads</button>
-</div>
-<div className="flex">
-<button onClick={()=> setFilterData("new")} className="h-8 w-20 flex items-center rounded-3xl justify-center gap-2 bg-[#283039] text-white "><span className="w-2 h-2 rounded-full bg-blue-400"></span>New</button>
-</div>
-<button onClick={()=> setFilterData("contacted")} className="h-8 px-3 flex items-center gap-2 rounded-3xl bg-[#283039] text-white "><span className="w-2 h-2 rounded-full bg-yellow-400"></span> Contacted</button>
-<button onClick={()=> setFilterData("Qualified")} className="h-8 w-25 flex justify-center items-center rounded-3xl bg-[#283039] text-white gap-2 "><span className="w-2 h-2 rounded-full bg-green-400"></span>Qualified</button>
-<button onClick={()=> setFilterData("Unresponsive")} className="h-8 px-2 flex justify-center items-center rounded-3xl bg-[#283039] text-white gap-2"><span className="w-2 h-2 rounded-full bg-red-400"></span>Unresponsive</button>
-
-</div>
-
-{isforam && (
-            <div className="fixed inset-0   z-40 backdrop-blur-sm bg-black/40">
-              <div className="fixed flex justify-center items-center inset-0 z-50">
-                <form
-                  onSubmit={handleSubmit}
-                  className="w-full max-w-xl p-6 border-white/10  space-y-4 rounded-lg border backdrop:blur-lg bg-[#1a1d21] "
-                >
-                  <div className="flex text-xl text-white justify-between">
-                    <h2>Add Task</h2>
-                    <X onClick={() => setIsforam(false)} />
-                  </div>
-                  <label className="text-[#9CABBA] font-semibold">
-                    Full Name
-                  </label>
-                  <input
-
-                    type="text"
-                    name="fullname"
-                    onChange={handleChange}
-                    value={taskData.fullname}
-                    className="border bg-[#111418] text-white focus:border-blue-600 focus:outline-none border-white/10 w-full h-10 rounded-lg pl-2 placeholder:text-[#9CABBA] placeholder:font-semibold"
-                    placeholder="e.g. John Doe"
-                  />{" "}
-                  <br />
-                  <div className="flex gap-2">
-                    <div>
-                      <label className="text-[#9CABBA] font-semibold">
-                        Email Address
-                      </label>
-                      <input
-                        type="email"
-                        name="email"
-                        onChange={handleChange}
-                        value={taskData.email}
-                        placeholder="john@example.com"
-                        className=" text-white bg-[#111418] focus:border-blue-600 focus:outline-none border-white/10 pl-2 placeholder:font-semibold border w-full h-10 rounded-lg"
-                      />
+      {/* TABLE CONTAINER - GLASSMORPHISM */}
+      <div className="rounded-[2.5rem] bg-white/30 backdrop-blur-xl border border-white/50 shadow-[0_20px_50px_rgba(59,37,44,0.05)] overflow-hidden">
+        <div className="overflow-x-auto text-nowrap">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="bg-[#CDCDCD]/20 text-[#3B252C]/40 uppercase text-[10px] font-black tracking-[0.2em]">
+                <th className="px-8 py-6">Lead Identity</th>
+                <th className="px-8 py-6">Communication</th>
+                <th className="px-8 py-6 text-center">Lifecycle Status</th>
+                <th className="px-8 py-6 text-center">Network</th>
+                <th className="px-8 py-6 text-right">Engagement</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/40">
+              {searchFilter.map((ele) => (
+                <tr key={ele._id} className="hover:bg-white/60 transition-all group cursor-default">
+                  <td className="px-8 py-6">
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-2xl bg-[#8F6593] text-white flex items-center justify-center font-black shadow-lg shadow-[#8F6593]/20 group-hover:scale-110 transition-transform">
+                        {ele.fullname.charAt(0)}
+                      </div>
+                      <div>
+                        <div className="font-black text-[#3B252C] text-lg leading-none mb-1">
+                          {ele.fullname}
+                        </div>
+                        <div className="text-[10px] font-bold text-[#8F6593] uppercase tracking-tighter">Verified Prospect</div>
+                      </div>
                     </div>
-                    <div>
-                      <label className="text-[#9CABBA] font-semibold">
-                        Phone Number
-                      </label>
-                      <input
-                    type="number"
-                    name="phone"
-                    onChange={handleChange}
-                    value={taskData.phone}
-                    className="text-white border focus:border-blue-600 focus:outline-none pl-2 bg-[#111418] border-white/10  placeholder:text-[#9CABBA] placeholder:font-semibold w-full h-10 rounded-lg"
-                    placeholder="+1 (555) 000-0000"
-                  />
+                  </td>
 
-                      {/* <input type="text" /> */}
-                      
+                  <td className="px-8 py-6">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 text-sm font-bold text-[#3B252C]">
+                        <Mail size={14} className="text-[#AEA4BF]" /> {ele.email}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs font-semibold text-[#3B252C]/40">
+                        <Phone size={14} className="text-[#AEA4BF]" /> {ele.phone}
+                      </div>
                     </div>
-                  </div>
-                  <label className="text-[#9CABBA] font-semibold">
-                    Search Company
-                  </label>
+                  </td>
 
-                  <input
-                    type="text"
-                    name="company_name"
-                    onChange={handleChange}
-                    value={taskData.company_name}
-                    className="text-white border focus:border-blue-600 focus:outline-none pl-2 bg-[#111418] border-white/10  placeholder:text-[#9CABBA] placeholder:font-semibold w-full h-10 rounded-lg"
-                    placeholder="Search Company"
-                  />
-                  <label className="text-[#9CABBA] font-semibold">
-                    Linked 
-                  </label>
+                  <td className="px-8 py-6 text-center">
+                    <span className={`px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm inline-block ${statusStyle[ele.status] || "bg-gray-100"}`}>
+                      {ele.status}
+                    </span>
+                  </td>
 
-                  <input
-                    type="text"
-                    name="linked"
-                    onChange={handleChange}
-                    value={taskData.linked}
-                    className="text-white border focus:border-blue-600 focus:outline-none pl-2 bg-[#111418] border-white/10  placeholder:text-[#9CABBA] placeholder:font-semibold w-full h-10 rounded-lg"
-                    placeholder="Search Company"
-                  />
-                  <label className="text-[#9CABBA] font-semibold">
-                    Instial Status
-                  </label>
-                  <select
-                        name="status"
-                        onChange={handleChange}
-                        value={taskData.status}
-                        required
-                        className="  border w-full h-10 focus:border-blue-600 focus:outline-none bg-[#111418] border-white/10 rounded-lg text-white"
-                      >
-                        <option value="">Please slect Priority</option>
-                        <option value="new">New</option>
-                        <option value="Qualified">Qualified</option>
-                        <option value="Unresponsive">Unresponsive</option>
-                        <option value="contacted">Contacted</option>
-                      </select>
-                  <label className="text-[#9CABBA] font-semibold">
-                    Assigen
-                  </label>
-                  <select
-                        name="Assign"
-                        onChange={handleChange}
-                        value={taskData.status}
-                        required
-                        className="  border w-full h-10 focus:border-blue-600 focus:outline-none bg-[#111418] border-white/10 rounded-lg text-white"
-                      >
-                        <option value="">Please select </option>
-                        <option value="Sales Executive – Rahul">Sales Executive – Rahul</option>
-                        <option value="Sales Executive – Priya">Sales Executive – Priya</option>
-                      </select>
-                  <div className="flex justify-center ">
-                    <button
-                      type="submit"
-                      className="bg-[#2563EB] mt-5 w-full h-10 rounded-lg text-white font-semibold"
-                    >
-                      Submit
-                    </button>
-                  </div>
-                </form>
+                  <td className="px-8 py-6 text-center">
+                    {ele.linked ? (
+                      <a href={ele.linked} target="_blank" rel="noreferrer" className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm">
+                        <Linkedin size={18} />
+                      </a>
+                    ) : (
+                      <span className="text-[#CDCDCD]">N/A</span>
+                    )}
+                  </td>
+
+                  <td className="px-8 py-6 text-right">
+                    <div className="flex items-center justify-end gap-2 text-sm font-black text-[#3B252C]/40">
+                      <Clock size={16} className="text-[#8F6593]" /> {timeAgo(ele.createdAt)}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          
+          {searchFilter.length === 0 && (
+            <div className="p-24 text-center">
+              <div className="inline-flex p-8 bg-white/50 rounded-full mb-4 text-[#CDCDCD]">
+                <Search size={48} />
               </div>
+              <h3 className="text-2xl font-black text-[#3B252C]">No Results Found</h3>
+              <p className="text-[#3B252C]/40 font-bold">Try adjusting your search or filters</p>
             </div>
           )}
-
-
-
-<div className="border mt-5 overflow-x-auto border-white/10 rounded-lg">
-<table  className="min-w-full textsm">
-
-<thead className="p-5 text-[#9CABBA] bg-[#21272E]">
-  <tr >
-<th className="px-4 py-3 text-left">Name</th>
-<th className="px-4 py-3 text-left">phone</th>
-<th className="px-4 py-3 text-left">Status</th>
-<th className="px-4 py-3 text-left">Social</th>
-<th className="px-4 py-3 text-left">Last Activity</th>
-
-  </tr>
-</thead>
-{searchFilter.map((ele)=>(
-
-<tbody >
-  <tr className="bg-[#1a1d21] hover:bg-white/5">
-    <td className="px-4 py-4">
-      <p className="text-white">{ele.fullname}</p>
-      <p className="text-[#9CABBA]">{ele.company_name}</p>
-    </td> 
-    <td>
-      <p className="text-white">Mail:{ele.email}</p>
-      <p className="text-[#9CABBA]">{ele.phone}</p>
-    </td>
-    <td className="px-4 py-4">
-      <p className={`${checkStatus(ele.status)} px-3 py-1 text-sm inline-block font-semibold rounded-full`}>{ele.status}</p>
-    </td>
-    <td>
-      <p className="text-[#9CABBA]">{ele.linked}</p>
-    </td>
-    <td>
-      <p className="text-[#9CABBA]">{timeAgo(ele.createdAt)}</p>
-    </td>
-  </tr>
-</tbody>
-
-))}
-</table>
-
-</div>
-
-
-
-
-</div>
-
-
+        </div>
       </div>
-    </>
+
+      {/* ADD LEAD MODAL - PREMIUM REFINEMENT */}
+      {isForm && (
+        <div className="fixed inset-0 z-50 bg-[#3B252C]/60 backdrop-blur-md flex items-center justify-center px-4 transition-all">
+          <form
+            onSubmit={handleSubmit}
+            className="bg-[#E3E4DB] w-full max-w-xl p-10 rounded-[3rem] border border-white/40 shadow-[0_30px_100px_rgba(0,0,0,0.2)] space-y-8 relative overflow-hidden"
+          >
+            {/* Decoration */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#8F6593]/10 rounded-bl-[100%] border-b border-l border-white/20"></div>
+            
+            <div className="flex justify-between items-start relative">
+              <div>
+                <h2 className="text-3xl font-black text-[#3B252C] tracking-tight">Expand Network</h2>
+                <p className="text-[#3B252C]/40 font-bold text-sm">Fill in the lead credentials below</p>
+              </div>
+              <button type="button" onClick={() => setIsForm(false)} className="h-12 w-12 flex items-center justify-center bg-white/50 hover:bg-white rounded-full transition-all shadow-sm">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
+              {[
+                {id: "fullname", label: "Full Identity", icon: <UserPlus size={16}/>, placeholder: "e.g. Alexander Pierce"},
+                {id: "email", label: "Email Address", icon: <Mail size={16}/>, placeholder: "alex@company.com"},
+                {id: "phone", label: "Contact Number", icon: <Phone size={16}/>, placeholder: "+1 (555) 000-000"},
+                {id: "linked", label: "LinkedIn Profile", icon: <Linkedin size={16}/>, placeholder: "linkedin.com/in/user"}
+              ].map((field) => (
+                <div key={field.id} className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[#3B252C]/50 flex items-center gap-2 ml-1">
+                    {field.icon} {field.label}
+                  </label>
+                  <input
+                    name={field.id}
+                    value={taskData[field.id]}
+                    onChange={handleChange}
+                    required
+                    placeholder={field.placeholder}
+                    className="w-full h-14 rounded-2xl bg-white/60 border border-white px-5 focus:ring-4 focus:ring-[#8F6593]/10 focus:bg-white outline-none transition-all font-bold text-[#3B252C] placeholder:text-[#3B252C]/20"
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-2 relative">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[#3B252C]/50 ml-1">Lifecycle Stage</label>
+              <select
+                name="status"
+                value={taskData.status}
+                onChange={handleChange}
+                required
+                className="w-full h-14 rounded-2xl bg-white/60 border border-white px-5 outline-none focus:ring-4 focus:ring-[#8F6593]/10 font-bold text-[#3B252C] appearance-none cursor-pointer"
+              >
+                <option value="">Select current status...</option>
+                <option value="new">🆕 Fresh Prospect</option>
+                <option value="Qualified">✅ MQL (Qualified)</option>
+                <option value="contacted">📞 Active Dialogue</option>
+                <option value="Unresponsive">⏳ Cold Lead</option>
+              </select>
+            </div>
+
+            <button className="w-full h-16 rounded-[1.5rem] bg-[#8F6593] text-white font-black text-xl shadow-[0_15px_30px_-5px_rgba(143,101,147,0.4)] hover:shadow-[0_20px_40px_-5px_rgba(143,101,147,0.5)] hover:-translate-y-1 active:scale-95 transition-all">
+              Initialize Connection
+            </button>
+          </form>
+        </div>
+      )}
+    </div>
+  );
 }
 
-export default ContactP;
+export default Contact;

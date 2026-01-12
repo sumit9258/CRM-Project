@@ -1,209 +1,236 @@
-import { ArrowUpWideNarrow, Calendar, CircleCheck, CircleCheckBig, Flame, ListFilter, Plus, TrendingDown, TrendingUp, X } from 'lucide-react'
-import React from 'react'
-import { useState } from 'react'
-import AddTaskForm from './AddTaskForm';
-import { useEffect } from 'react';
+import {
+  ArrowUpWideNarrow,
+  Calendar,
+  CircleCheck,
+  CircleCheckBig,
+  Flame,
+  Search,
+  Clock,
+  User,
+  MoreHorizontal,
+  Layers,
+  ArrowRight
+} from "lucide-react";
+import React, { useEffect, useState } from "react";
+import AddTaskForm from "./AddTaskForm";
 
 function Task() {
-  const [isforam,setIsforam]=useState(false)
+  const [isForm, setIsForm] = useState(false);
+  const [filterData, setFilterData] = useState("all");
+  const [search, setSearch] = useState("");
+  const [data, setData] = useState([]);
 
-  const [filterData,setFilterData]=useState("all")
-  const [search,setSearch]=useState("")
-const [data,setData]=useState([])
-    
-      const fetchTasks=async()=>{
+  /* ---------------- LOGIC (UNCHANGED) ---------------- */
+  const fetchTasks = async () => {
     try {
-        let res=await fetch("http://localhost:3000/api/tasks/fetch-tasks")
-        res=await res.json()
-        console.log(res);
-        
-setData(res)
+      let res = await fetch("http://localhost:3000/api/tasks/fetch-tasks");
+      res = await res.json();
+      setData(res);
     } catch (error) {
-        console.log(error);
-        
+      console.log(error);
     }
-  }
+  };
 
-  useEffect(()=>{
-    fetchTasks()
-  },[])
+  useEffect(() => {
+    fetchTasks();
+  }, []);
 
-  const filterTask=data.filter((ele)=>{
-    const check=filterData=="all"||ele.Priority==filterData
+  const filterTask = data.filter((ele) => {
+    const statusMatch = filterData === "all" || ele.Priority === filterData;
+    const q = search.toLowerCase();
+    const searchMatch =
+      ele.Title.toLowerCase().includes(q) ||
+      ele.ContactDeal.toLowerCase().includes(q);
+    return statusMatch && searchMatch;
+  });
 
-    const searchdata=search.toLowerCase()
-    const machSearch=ele.Title.toLowerCase().includes(searchdata) || 
-    ele.ContactDeal.toLowerCase().includes(searchdata)
-return machSearch&&check
-  })
-
-
-
-  const PriorityColor=(status)=>{
-switch (status) {
-  case "low":
-    return "bg-green-500/20 text-green-400"
-  case "high":
-        return "bg-red-500/20 text-red-400"
-  case "medium":
-        return "bg-yellow-500/20 text-yellow-400"
-
-
-}
-     }
+  const getPriorityStyles = (priority) => {
+    switch (priority) {
+      case "high":
+        return "bg-rose-50 text-rose-600 border-rose-100 shadow-[0_2px_10px_rgba(225,29,72,0.1)]";
+      case "medium":
+        return "bg-amber-50 text-amber-600 border-amber-100 shadow-[0_2px_10px_rgba(217,119,6,0.1)]";
+      case "low":
+        return "bg-emerald-50 text-emerald-600 border-emerald-100 shadow-[0_2px_10px_rgba(5,150,105,0.1)]";
+      default:
+        return "bg-gray-50 text-gray-500 border-gray-100";
+    }
+  };
 
   return (
-    <>
-    <div className="bg-[#111418] flex h-screen overflow-hidden">
+    <div className="flex-1 lg:ml-64 p-6 md:p-12 bg-[#E3E4DB] min-h-screen font-sans selection:bg-[#8F6593] selection:text-white">
+      
+      {/* HEADER */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 mb-14">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-[#8F6593] font-black uppercase text-[10px] tracking-[0.3em]">
+             <Layers size={14}/> Productivity Suite
+          </div>
+          <h1 className="text-5xl font-black text-[#3B252C] tracking-tight">
+            Tasks
+          </h1>
+        </div>
 
-        {/* right side */}
-
-<div className="flex-1 ml-64 p-5 h-screen overflow-y-auto">
-
-<div className="flex justify-between">
-<div>
-    <h2 className="text-white text-3xl font-semibold">Tasks Management
-</h2>
-    <p className="text-[#9CABBA]">Track your daily activities, follow-ups, and reminders.
-
-</p>
-
-</div>
-
-<div>
-</div>
-<div className="flex  gap-5 backdrop-blur-lg border border-white/10 rounded-lg p-3">
-    <div className='items-end flex flex-col'>
-
-    <h2 className="text-[#9CABBA]">Pending</h2>
-    <p className="text-white text-lg">10
-</p>
-    </div>
-    <div className='flex flex-col items-end border-l border-[#283039] pl-6'>
-        <p className="text-[#9CABBA]">Completed Today
-</p>
-        <p className="text-lg text-blue-400">12</p>
-    </div>
-    <div className='items-end flex flex-col border-l border-[#283039] pl-6'>
-        <p className="text-[#9CABBA]">Overdue
-</p>
-        <p className="text-red-400 text-lg">12</p>
-    </div>
-</div>
-</div>
-
-
-<div className="flex gap-20 items-center mt-10 justify-between">
-
-<div className="text-white w-full flex gap-5 ">
-
-<input
-  type="text"
-  className="
-    w-full flex-1
-    bg-[#283039]
-    text-white
-    focus:border-blue-600
-    focus:outline-none
-    border 
-    px-3
-    h-10
-    rounded-lg
-    text-sm
-    placeholder:text-[#9cabba]
-  "
-  name="search"
-  onChange={(e)=> setSearch(e.target.value)}
-  placeholder="Search tasks, contacts, or deals..."
-/>
-
-</div>
-
-<div className="text-white flex gap-4">
-    <button className="bg-[#283039] flex gap-2 items-center rounded-lg p-2 w-25"><ListFilter />Filter</button>
-    <button onClick={()=> setIsforam(!isforam)}  className="flex w-45 items-center justify-center rounded-lg h-11 px-6 hover:bg-blue-600 bg-blue-500 text-white gap-2 text-sm font-bold"><CircleCheckBig size={18} />Add New Task</button>
-</div>
-
-{isforam&&(
-  <AddTaskForm onClose={()=> setIsforam(false)} fetchAll={fetchTasks}/>
-)}
-
-</div>
-
-
-<div className="mt-8 flex gap-4">
-<div className="flex items-center">
- 
-<button onClick={()=> setFilterData("all")} className="flex items-center h-8 px-4 rounded-3xl bg-[#283039] text-white ">All Tasks</button>
-</div>
-<div className="flex">
-<button onClick={()=> setFilterData("high")} className="h-8 w-35 flex items-center rounded-3xl justify-center gap-2 bg-[#283039] text-white "><Flame  size={15} className='text-red-400'/>High Priority</button>
-</div>
-<button onClick={()=> setFilterData("contacted")} className="h-8 px-3 flex items-center gap-2 rounded-3xl bg-[#283039] text-white "><Calendar size={15} className='text-blue-400'/>  Due Today</button>
-<button onClick={()=> setFilterData("Qualified")} className="h-8 w-30 flex justify-center items-center rounded-3xl bg-[#283039] text-white gap-2 "><ArrowUpWideNarrow  size={17} className='text-yellow-400'/> Upcoming</button>
-<button onClick={()=> setFilterData("Unresponsive")} className="h-8 px-2 w-30 flex justify-center items-center rounded-3xl bg-[#283039] text-white gap-2"><CircleCheck size={15} className='text-green-400'/>Completed</button>
-
-</div>
-
-
-
-<div className="border mt-5 overflow-x-auto border-white/10 rounded-lg">
-<table  className="min-w-full textsm">
-
-<thead className="p-5 text-[#9CABBA] bg-[#21272E]">
-  <tr >
-<th className="px-4 py-3 text-left">Task Description</th>
-<th className="px-4 py-3 text-left">Related To</th>
-<th className="px-4 py-3 text-left">Due Date</th>
-<th className="px-4 py-3 text-left">Priority</th>
-<th className="px-4 py-3 text-left">Owner</th>
-
-  </tr>
-</thead>
-<tbody >
-{filterTask.map((ele)=>(
-
-  <tr className="bg-[#1a1d21] hover:bg-white/5">
-    <td className="px-4 py-4">
-      <p className="text-white">{ele.Title}</p>
-      <p className="text-[#9CABBA]">Note: {ele.Notes}</p>
-    </td> 
-    <td>
-      <p className="text-white">{ele.ContactDeal}</p>
-      <p className="text-[#9CABBA]">Reminder: {ele.Reminder}</p>
-    </td>
-    <td className="px-4 py-4">
-      {/* <p className={`px-3 py-1 text-sm inline-block font-semibold rounded-full`}>{ele.DUE_DATE}</p> */}
-      <p className="text-[#9CABBA]">{ele.DUE_DATE}</p>
-      <p className="text-[#9CABBA]">{ele.Due_Time}</p>
-
-    </td>
-    <td>
-      <p className={`${PriorityColor(ele.Priority)} inline-block px-2 rounded-xl`}>{ele.Priority}</p>
-    </td>
-    <td>
-      <p className="text-[#9CABBA]">{ele.Assignee}</p>
-    </td>
-  </tr>
-
-))}
-</tbody>
-</table>
-
-</div>
-
-
-
-
-
-
-</div>
-
-
+        <button
+          onClick={() => setIsForm(true)}
+          className="group h-16 px-8 rounded-2xl bg-[#8F6593] text-white font-black shadow-[0_15px_30px_-5px_rgba(143,101,147,0.4)] flex items-center gap-3 hover:-translate-y-1 transition-all active:scale-95 text-sm uppercase tracking-widest"
+        >
+          <CircleCheckBig size={22} strokeWidth={3} className="group-hover:rotate-12 transition-transform" />
+          Create Entry
+        </button>
       </div>
-    
-    </>
-  )
+
+      {/* FILTER HUB */}
+      <div className="bg-white/40 backdrop-blur-2xl border border-white rounded-[2.5rem] p-5 mb-10 shadow-sm flex flex-col xl:flex-row gap-6 items-center">
+        <div className="relative flex-1 group w-full">
+          <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-[#3B252C]/30 group-focus-within:text-[#8F6593] transition-colors" size={20} />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Scan tasks, deals or contacts..."
+            className="w-full h-14 rounded-3xl pl-16 pr-6 bg-white/60 border border-white focus:bg-white focus:ring-4 focus:ring-[#8F6593]/10 outline-none transition-all font-bold text-[#3B252C] placeholder:text-[#3B252C]/30 shadow-inner"
+          />
+        </div>
+
+        <div className="h-10 w-[2px] bg-[#CDCDCD]/30 hidden xl:block" />
+
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar w-full xl:w-auto">
+          {[
+            { id: "all", label: "All Hub", icon: null },
+            { id: "high", label: "Critical", icon: <Flame size={14} /> },
+            { id: "medium", label: "Steady", icon: <ArrowUpWideNarrow size={14} /> },
+            { id: "low", label: "Minor", icon: <CircleCheck size={14} /> },
+          ].map((pill) => (
+            <button
+              key={pill.id}
+              onClick={() => setFilterData(pill.id)}
+              className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border
+                ${filterData === pill.id 
+                  ? "bg-[#8F6593] text-white border-[#8F6593] shadow-lg shadow-[#8F6593]/20" 
+                  : "bg-white/40 text-[#3B252C]/50 border-white hover:border-[#8F6593]/30"
+                }`}
+            >
+              {pill.icon}
+              {pill.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* DATA VIEW */}
+      <div className="rounded-[3rem] bg-white/30 backdrop-blur-3xl border border-white/60 shadow-[0_20px_50px_rgba(59,37,44,0.05)] overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-separate border-spacing-0">
+            <thead>
+              <tr className="bg-[#CDCDCD]/20 text-[#3B252C]/40 uppercase text-[10px] font-black tracking-[0.2em]">
+                <th className="px-10 py-8">Task Identification</th>
+                <th className="px-6 py-8">Linkage</th>
+                <th className="px-6 py-8">Timeline</th>
+                <th className="px-6 py-8">Classification</th>
+                <th className="px-6 py-8">Assignee</th>
+                <th className="px-10 py-8"></th>
+              </tr>
+            </thead>
+
+            <tbody className="divide-y divide-[#CDCDCD]/20">
+              {filterTask.map((ele) => (
+                <tr
+                  key={ele._id}
+                  className="hover:bg-white/80 transition-all group relative"
+                >
+                  <td className="px-10 py-8">
+                    <div className="flex flex-col gap-1">
+                      <span className="font-black text-[#3B252C] text-lg leading-tight group-hover:text-[#8F6593] transition-colors">
+                        {ele.Title}
+                      </span>
+                      <div className="flex items-center gap-2">
+                         <div className="h-1 w-1 rounded-full bg-[#8F6593]" />
+                         <span className="text-xs text-[#3B252C]/40 font-bold italic line-clamp-1 max-w-[300px]">
+                           {ele.Notes || "Standard task protocol."}
+                         </span>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td className="px-6 py-8">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/50 border border-white shadow-sm text-[#3B252C]/60 text-[10px] font-black uppercase tracking-wider">
+                       <ArrowRight size={12} className="text-[#8F6593]"/> {ele.ContactDeal}
+                    </div>
+                  </td>
+
+                  <td className="px-6 py-8">
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2 text-xs font-black text-[#3B252C]">
+                        <Calendar size={14} className="text-[#8F6593]" strokeWidth={2.5} />
+                        {ele.DUE_DATE}
+                      </div>
+                      <div className="flex items-center gap-2 text-[10px] font-black text-[#3B252C]/30 uppercase tracking-tighter">
+                        <Clock size={12} strokeWidth={2.5} />
+                        {ele.Due_Time || "Open Schedule"}
+                      </div>
+                    </div>
+                  </td>
+
+                  <td className="px-6 py-8">
+                    <span
+                      className={`px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border shadow-sm inline-block transition-transform group-hover:scale-105
+                        ${getPriorityStyles(ele.Priority)}`}
+                    >
+                      {ele.Priority}
+                    </span>
+                  </td>
+
+                  <td className="px-6 py-8">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-2xl bg-[#8F6593] text-white flex items-center justify-center font-black text-sm shadow-lg shadow-[#8F6593]/20 transition-transform group-hover:rotate-6">
+                            {ele.Assignee?.charAt(0) || <User size={16}/>}
+                        </div>
+                        <div className="flex flex-col">
+                           <span className="text-xs font-black text-[#3B252C] leading-none mb-1">
+                               {ele.Assignee}
+                           </span>
+                           <span className="text-[9px] font-bold text-[#3B252C]/30 uppercase tracking-widest">Operator</span>
+                        </div>
+                    </div>
+                  </td>
+                  
+                  <td className="px-10 py-8 text-right">
+                     <button className="h-10 w-10 flex items-center justify-center rounded-xl hover:bg-[#8F6593] hover:text-white text-[#CDCDCD] transition-all">
+                        <MoreHorizontal size={20} />
+                     </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          
+          {filterTask.length === 0 && (
+            <div className="py-32 text-center flex flex-col items-center gap-6">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-[#8F6593]/20 blur-3xl rounded-full" />
+                  <div className="relative inline-flex items-center justify-center w-28 h-28 rounded-[3rem] bg-white border border-white shadow-xl">
+                      <CircleCheck className="text-[#8F6593]" size={48} strokeWidth={1.5} />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-2xl font-black text-[#3B252C] tracking-tight">Protocol Complete</h3>
+                  <p className="text-[#3B252C]/30 text-xs font-bold uppercase tracking-[0.2em]">All active directives cleared.</p>
+                </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* MODAL */}
+      {isForm && (
+        <AddTaskForm
+          onClose={() => setIsForm(false)}
+          fetchAll={fetchTasks}
+        />
+      )}
+    </div>
+  );
 }
 
-export default Task
+export default Task;

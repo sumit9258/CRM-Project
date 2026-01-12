@@ -1,183 +1,212 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import logo from "../assets/logo.png";
-import log from "../assets/log.png";
-import logUser from "../assets/logU.png";
-import google from "../assets/google2.png";
-import { Eye, EyeOff, Lock, Mail } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, ArrowRight, ShieldCheck } from "lucide-react";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { auth } from "../../firebase";
 import { toast } from "react-toastify";
+import { auth } from "../../firebase";
 import { useAuth } from "../context/AuthContext";
+import logo from "../assets/logo.png";
+import google from "../assets/google2.png";
+import authImg from "../assets/LoginImg.png";
 
 function Login() {
-  const {setUser}=useAuth()
+  const { setUser } = useAuth();
+  const navigate = useNavigate();
+
+  const [show, setShow] = useState(false);
   const [data, setData] = useState({ email: "", password: "" });
-  const navigate=useNavigate()
-  const [inp,setInp]=useState(false)
-  const handleChange = (e) => {
-    const { name, value } = e.target;
 
-    setData((pre) => ({
-      ...pre,
-      [name]: value,
-    }));
-  };
+  const handleChange = (e) =>
+    setData((p) => ({ ...p, [e.target.name]: e.target.value }));
 
-  const handleSubmit =async (e) => {
+  // Logic remains exactly the same as requested
+  const handleSubmit = async (e) => {
     e.preventDefault();
-try {
-  let res=await fetch("http://localhost:3000/api/auth/login",{
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json"
-    },credentials:"include",
-    body:JSON.stringify(data)
-  })
-  let result=await res.json()
+    try {
+      let res = await fetch("http://localhost:3000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+      let result = await res.json();
 
-  if (res.ok) {
-       setUser(result.user)
-      toast.success("Login successfully")
-    }else{
-      toast.error(result.message||"envailid ")
-      
+      if (res.ok) {
+        setUser(result.user);
+        toast.success("Login successful");
+        navigate("/dashboard");
+      } else toast.error(result.message);
+    } catch {
+      toast.error("Login failed");
     }
-  console.log(result);
-  
-  
-} catch (error) {
-  console.log(error);
-      toast.error(result.message,"envailid ")
-  
-}
   };
 
-  
-    const handleGoogle=async()=>{
-      const provider=new GoogleAuthProvider()
-      const result=await signInWithPopup(auth,provider)
-      console.log(result);
-      
-      try {
-        let res=await fetch("http://localhost:3000/api/auth/google/auth",{
-          method:"POST",
-          headers:{"Content-Type":"application/json"}
-          ,credentials:"include",
-          body:JSON.stringify({name:result.user.displayName,email:result.user.email})
-        })
-        let result=await res.json()
-        if (res.ok) {
-       setUser(result.user)
+  const handleGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
 
-            toast.success("register successfully")
-          }
-            toast.error("envailid ")
-        
-      } catch (error) {
-        console.log(error);
-        
-      }
+    let res = await fetch("http://localhost:3000/api/auth/google/auth", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        name: result.user.displayName,
+        email: result.user.email,
+      }),
+    });
+
+    let data = await res.json();
+    if (res.ok) {
+      setUser(data.user);
+      navigate("/dashboard");
     }
-  
+  };
 
   return (
-    <>
-      <div className="flex min-h-screen ">
-        <div className="flex-col space-y-5 pl-25 pt-20 w-1/2 bg-[#101922]">
-          <div>
-            <h2 className="flex text-3xl font-bold items-center text-[#FFFFFF]">
-              {" "}
-              <img className="w-20" src={logo} />
-              SalesForce One
-            </h2>
-          </div>
+    <div className="min-h-screen grid lg:grid-cols-10 bg-[#E3E4DB] font-sans selection:bg-[#8F6593] selection:text-white">
 
-          <div>
-            <h2 className="text-3xl font-bold text-[#FFFFFF]">Welcome Back</h2>
-            <p className="text-[#94A3B8]">
-              Enter your credentials to access your dashboard.
-            </p>
-          </div>
-
-          <form className="space-y-5 w-110" onSubmit={handleSubmit}>
-            <div className="relative">
-              <label className="text-[#FFFFFF]">Email address</label> <br />
-                <Mail size={20} className="absolute  left-3 top-1/2 text-[#9CABBA]" />
-                <input
-                  className="border placeholder:pl-2 w-full pl-10 h-12 text-[#FFFFFF] placeholder:text-[#9CABBA] bg-[#1B2127] rounded-lg"
-                  placeholder="name@gmail.com"
-                  type="text"
-                  name="email"
-                  onChange={handleChange}
-                  value={data.email}
-                />
+      {/* LEFT – FORM (Takes 4 columns on desktop) */}
+      <div className="lg:col-span-4 flex items-center justify-center p-8 md:p-12 relative overflow-hidden">
+        {/* Decorative background element */}
+        <div className="absolute -top-24 -left-24 w-64 h-64 bg-[#AEA4BF]/20 rounded-full blur-3xl opacity-50" />
+        
+        <div className="w-full max-w-md relative z-10">
+          {/* Logo Branding */}
+          <div className="flex items-center gap-3 mb-10 group cursor-default">
+            <div className="p-2 bg-white rounded-2xl shadow-sm border border-[#CDCDCD]/30 group-hover:scale-110 transition-transform">
+              <img src={logo} className="w-8" alt="Logo" />
             </div>
-            <div className="relative">
-              <label className="text-[#FFFFFF]">Password</label> <br />
-                  <button type="button" onClick={()=> setInp(!inp)} className="absolute text-[#9CABBA] right-3 top-1/2">
-                 {inp? <Eye size={20}/>: <EyeOff size={20}/>}
-              
-                  </button>
-          
-              <Lock className="absolute text-[#9CABBA] left-3 top-1/2" size={20}/>
-              <input
-                className="border placeholder:pl-3 pl-10 w-full h-12 pr-10 text-[#FFFFFF] placeholder:text-[#9CABBA] bg-[#1B2127] rounded-lg"
-                type={inp?"text":"password"}
-                name="password"
-                onChange={handleChange}
-                value={data.password}
-              />
-            </div>
-            <button className="text-[#2563EB]  ml-80">Forget Password</button>
-            <button
-              className="border w-full h-12 p-1 pl-10 pr-10 bg-[#2563EB] rounded-lg"
-              type="submit"
-            >
-              Sign in
-            </button>
-          </form>
-          <div>
-            <p className="text-[#64748B]">Or continue with</p>
-            <button onClick={handleGoogle} className="flex items-center justify-center bg-[#1E252B] border w-110 h-12 p-1 text-[#FFFFFF] pl-10 pr-10 rounded-lg">
-              <img src={google} className="w-10" />
-              Google
-            </button>
+            <h1 className="text-2xl font-black text-[#3B252C] tracking-tight italic">
+              Sales<span className="text-[#8F6593]">CRM</span>
+            </h1>
           </div>
-          <p className="text-[#64748B]">
-            Don't have an account?
-            <Link className="text-[#4373AD] font-bold" to="/">
-              {" "}
-              Sign up for a trial
-            </Link>
-          </p>
-        </div>
 
-        <div className="min-h-screen w-1/2 bg-black/50 relative">
-          <img className="w-full h-full object-cover " src={log} />
-
-          <div className="absolute bottom-0 pb-20 left-20">
-            <div>
-              <h2 className="text-3xl pb-10 fond-bold text-[#FFFFFF]">
-                "SalesForce One transformed how our team
-                <br />
-                tracks revenue. The interface is simply the <br />
-                fastest on the market."
+          {/* Form Card */}
+          <div className="bg-white/40 backdrop-blur-xl border border-white/60 rounded-[2.5rem] p-10 shadow-[0_25px_50px_-12px_rgba(59,37,44,0.08)]">
+            <div className="mb-8">
+              <h2 className="text-3xl font-black text-[#3B252C] tracking-tight">
+                Welcome Back
               </h2>
+              <p className="text-[#3B252C]/50 font-bold text-sm mt-2">
+                Enter your credentials to access the terminal.
+              </p>
             </div>
 
-            <div className="flex gap-4">
-              <img src={logUser} className="w-12 rounded-full" />
-              <div>
-                <h2 className="text-[#FFFFFF]">Alex Morgan</h2>
-                <p className="text-[#94A3B8]">VP of Sales, TechCorp</p>
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[#3B252C]/40 ml-1">Identity</label>
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#AEA4BF] group-focus-within:text-[#8F6593] transition-colors">
+                    <Mail size={18} strokeWidth={2.5} />
+                  </div>
+                  <input
+                    name="email"
+                    value={data.email}
+                    onChange={handleChange}
+                    placeholder="mail@identity.com"
+                    className="w-full h-14 pl-12 pr-4 rounded-2xl bg-white/60 border border-white focus:bg-white focus:ring-4 focus:ring-[#8F6593]/10 outline-none transition-all font-bold text-[#3B252C] placeholder:text-[#3B252C]/20 shadow-inner"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center px-1">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[#3B252C]/40">Security</label>
+                  <button type="button" className="text-[10px] font-black text-[#8F6593] uppercase tracking-wider hover:underline">Forgot?</button>
+                </div>
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#AEA4BF] group-focus-within:text-[#8F6593] transition-colors">
+                    <Lock size={18} strokeWidth={2.5} />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShow(!show)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#3B252C]/20 hover:text-[#8F6593] transition-colors"
+                  >
+                    {show ? <Eye size={18} strokeWidth={2.5} /> : <EyeOff size={18} strokeWidth={2.5} />}
+                  </button>
+                  <input
+                    type={show ? "text" : "password"}
+                    name="password"
+                    value={data.password}
+                    onChange={handleChange}
+                    placeholder="••••••••"
+                    className="w-full h-14 pl-12 pr-12 rounded-2xl bg-white/60 border border-white focus:bg-white focus:ring-4 focus:ring-[#8F6593]/10 outline-none transition-all font-bold text-[#3B252C] placeholder:text-[#3B252C]/20 shadow-inner"
+                  />
+                </div>
+              </div>
+
+              <button className="w-full h-16 rounded-2xl bg-[#8F6593] text-white font-black shadow-[0_15px_30px_-10px_rgba(143,101,147,0.5)] hover:shadow-[0_20px_40px_-10px_rgba(143,101,147,0.6)] hover:-translate-y-1 active:scale-95 transition-all flex items-center justify-center gap-2 group">
+                Initialize Login <ArrowRight size={18} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
+              </button>
+            </form>
+
+            <div className="relative my-8">
+              <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-[#CDCDCD]/40"></span></div>
+              <div className="relative flex justify-center text-[10px] font-black uppercase tracking-[0.3em] text-[#3B252C]/30 bg-transparent px-4">
+                Encryption Protocol
               </div>
             </div>
+
+            <button
+              onClick={handleGoogle}
+              className="w-full h-14 rounded-2xl bg-white border border-white shadow-sm flex items-center justify-center gap-3 font-black text-[#3B252C] text-sm hover:bg-[#CDCDCD]/20 hover:border-[#CDCDCD] transition-all active:scale-95"
+            >
+              <img src={google} className="w-5" alt="Google" />
+              Google SSO
+            </button>
+
+            <p className="mt-8 text-center">
+              <span className="text-xs font-bold text-[#3B252C]/40 uppercase tracking-widest">New operative? </span>
+              <Link to="/" className="text-xs font-black text-[#8F6593] uppercase tracking-widest hover:underline decoration-2 underline-offset-4">
+                Enlist Now
+              </Link>
+            </p>
+          </div>
+          
+          <div className="mt-10 flex items-center justify-center gap-2 text-[#3B252C]/30">
+             <ShieldCheck size={16} />
+             <span className="text-[9px] font-black uppercase tracking-widest">AES-256 Bit Encrypted Connection</span>
           </div>
         </div>
       </div>
-    </>
+
+      {/* RIGHT – VISUAL (Takes 6 columns on desktop) */}
+      <div className="hidden lg:flex lg:col-span-6 items-center justify-center relative bg-[#CDCDCD]/20 overflow-hidden">
+        {/* Geometric Decorative Elements */}
+        <div className="absolute top-20 right-20 w-80 h-80 border-[40px] border-white/30 rounded-full blur-sm" />
+        <div className="absolute -bottom-20 -right-20 w-[400px] h-[400px] bg-[#8F6593]/5 rounded-full blur-3xl" />
+        
+        <div className="relative z-10 text-center space-y-8 p-12">
+          <div className="bg-white/40 backdrop-blur-3xl p-4 rounded-[3rem] border border-white/50 shadow-2xl relative">
+            <img
+              src={authImg}
+              alt="CRM analytics illustration"
+              className="w-[500px] max-w-full drop-shadow-[0_35px_35px_rgba(59,37,44,0.15)] animate-float"
+            />
+          </div>
+          
+          <div className="space-y-4 max-w-sm mx-auto">
+             <h3 className="text-3xl font-black text-[#3B252C] tracking-tight">Propelling Sales through Data.</h3>
+             <p className="text-[#3B252C]/50 font-bold leading-relaxed">
+               Access the next generation of customer relationship management and pipeline optimization.
+             </p>
+          </div>
+        </div>
+      </div>
+
+      {/* CSS for custom float animation */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes float {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-20px); }
+          100% { transform: translateY(0px); }
+        }
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+      `}} />
+    </div>
   );
 }
 

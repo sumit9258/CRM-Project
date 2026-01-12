@@ -1,245 +1,232 @@
-import { X } from 'lucide-react'
-import React from 'react'
-import { useEffect } from 'react';
-import { useState } from 'react';
+import { X, ClipboardList, Calendar, Clock, Flag, User, Link as LinkIcon, Bell, AlignLeft } from "lucide-react";
+import { useEffect, useState } from "react";
 
-function AddTaskForm({onClose,fetchAll}) {
-      const [Task, SetTask] = useState({
-        Title: "",
-        DUE_DATE: "",
-        Due_Time: "",
-        Priority: "",
-        Assignee: "",
-        ContactDeal: "",
-        Reminder: "",
-        Notes: ""
-      });
+function AddTaskForm({ onClose, fetchAll }) {
+  const [Task, SetTask] = useState({
+    Title: "",
+    DUE_DATE: "",
+    Due_Time: "",
+    Priority: "",
+    Assignee: "",
+    ContactDeal: "",
+    Reminder: "",
+    Notes: "",
+  });
 
-      const [AllUser,setAllUser]=useState([])
+  const [AllUser, setAllUser] = useState([]);
 
-      const Handlechange = (e) => {
-    const { name,value } = e.target;
-    SetTask((pre) => ({
-      ...pre,
-      [name]: value,
-    }));
+  const Handlechange = (e) => {
+    const { name, value } = e.target;
+    SetTask((pre) => ({ ...pre, [name]: value }));
   };
 
-  const fetchUsers=async()=>{
-    try {
-        let res=await fetch("http://localhost:3000/api/tasks/get-users")
-        res=await res.json()
-        console.log(res);
-        
-setAllUser(res)
-    } catch (error) {
-        console.log(error);
-        
-    }
-  }
+  const fetchUsers = async () => {
+    let res = await fetch("http://localhost:3000/api/tasks/get-users");
+    res = await res.json();
+    setAllUser(res);
+  };
 
-  useEffect(()=>{
-fetchUsers()
-  },[])
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      let res=await fetch("http://localhost:3000/api/tasks/add-tasks",{
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json"
-        },credentials:"include",
-        body:JSON.stringify(Task)
-      })
+    let res = await fetch("http://localhost:3000/api/tasks/add-tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(Task),
+    });
 
-      console.log("okk",res.ok);
-      if (res.ok) {
-        fetchAll()
-        onClose()
-      }
-      // res=await res.json()
-
-      
-    } catch (error) {
-      console.log(error);
-      
+    if (res.ok) {
+      fetchAll();
+      onClose();
     }
   };
 
-
-
   return (
-    <>
-                <div className="fixed backdrop-blur-lg bg-black/40 inset-0 z-40">
-                  <div className="fixed flex  justify-center items-center z-50 inset-0">
-                    <div>
-                      <form
-                        onSubmit={handleSubmit}
-                        className="backdrop:blur-lg  bg-[#1a1d21]  w-160  rounded-lg"
-                      >
-                          <div className="flex text-xl pt-5 pb-4 pl-4 pr-4 border-b border-[#283039] text-white justify-between">
-                            <h2>Add New Task</h2>
-                            <X onClick={onClose} />
-                          </div>
-                        <div className="space-y-4 p-5 overflow-y-auto max-h-[70vh] [scrollbar-width:none]">
-                          <div className="">
-                            <div>
-                              <label className="text-white font-semibold">
-                                Task Title / Description
-                              </label>{" "}
-                              <br />
-                              <input
-                                type="text"
-                                className='w-full bg-[#283039] border border-transparent focus:border-primary focus:ring-0 rounded-lg text-white placeholder-[#9cabba]/50 px-4 py-2.5 transition-all outline-none'
-                                placeholder="e.g. Follow up with client about proposal"
-                                name="Title"
-                                onChange={Handlechange}
-                                value={Task.Title}
-                              />
-                            </div>
-    
-                          </div>
-                          <div className="grid grid-cols-2 gap-6">
-                            <div>
-                              <label className="text-white font-semibold">
-                                Due Date
-                              </label>{" "}
-                              <br />
-                              <input
-                                type="date"
-                                className='w-full bg-[#283039] border border-transparent focus:border-primary focus:ring-0 rounded-lg text-white placeholder-[#9cabba]/50 px-4 py-2.5 transition-all outline-none'
-                                placeholder="Enter Deal Value"
-                                name="DUE_DATE"
-                                onChange={Handlechange}
-                                value={Task.DUE_DATE}
-                              />
-                            </div>
-    
-                            <div>
-                              <label className="text-white font-semibold">
-                                Due Time
-                              </label>{" "}
-                              <br />
-                              <input
-                                type="time"
-                                className='w-full bg-[#283039] border border-transparent focus:border-primary focus:ring-0 rounded-lg text-white placeholder-[#9cabba]/50 px-4 py-2.5 transition-all outline-none'
-                                placeholder=""
-                                name="Due_Time"
-                                onChange={Handlechange}
-                                value={Task.Due_Time}
-                              />
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-6">
-                            <div>
-                              <label className="text-white font-semibold">
-                                Priority
-                              </label>{" "}
-                              <br />
-                              <select
-                                value={Task.Priority}
-                                name="Priority"
-                                onChange={Handlechange}
-                                className='w-full bg-[#283039] border border-transparent focus:border-primary focus:ring-0 rounded-lg text-white px-4 py-2.5 cursor-pointer'
+    <div className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-md flex items-center justify-center px-4 animate-in fade-in duration-300">
+      <div className="w-full max-w-2xl bg-[var(--bg-main)] rounded-[2.5rem] shadow-2xl border border-white/20 overflow-hidden scale-in-center">
+        
+        <form onSubmit={handleSubmit} className="flex flex-col max-h-[90vh]">
+          
+          {/* HEADER */}
+          <div className="flex justify-between items-center px-8 py-6 border-b border-black/5">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-[var(--accent-main)] rounded-xl text-white">
+                <ClipboardList size={22} />
+              </div>
+              <div>
+                <h2 className="text-xl font-black text-[var(--text-main)] tracking-tight">
+                  Create New Task
+                </h2>
+                <p className="text-[10px] font-bold text-[var(--text-main)]/40 uppercase tracking-widest">Assignment details</p>
+              </div>
+            </div>
+            <button 
+              type="button"
+              onClick={onClose}
+              className="p-2 hover:bg-black/5 rounded-full transition-colors"
+            >
+              <X className="text-[var(--text-main)]/40 hover:text-[var(--text-main)]" size={24} />
+            </button>
+          </div>
 
-                              >
-                                <option value="">Please select Priority</option>
-                                <option value="low">Low</option>
-                                <option value="medium">Medium</option>
-                                <option value="high">High</option>
-                              </select>
-                            </div>
-    
-                            <div>
-                              <label className="text-white font-semibold">
-                                Assignee
-                              </label>{" "}
-                              <br />
-                              <select
-                                name="Assignee"
-                                onChange={Handlechange}
-                                value={Task.Assignee}
-                                className='w-full bg-[#283039] border border-transparent focus:border-primary focus:ring-0 rounded-lg text-white px-4 py-2.5 cursor-pointer'
-                              >
-                                {AllUser.map((ele)=>(
-                                    <option value={ele.name}>{ele.name}</option>
+          {/* BODY */}
+          <div className="p-8 space-y-6 overflow-y-auto custom-scrollbar">
+            
+            {/* TASK TITLE */}
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-[var(--text-main)]/50 ml-1">
+                <AlignLeft size={14} /> Task Title / Description
+              </label>
+              <input
+                name="Title"
+                value={Task.Title}
+                onChange={Handlechange}
+                required
+                placeholder="What needs to be done?"
+                className="w-full h-14 rounded-2xl bg-white/60 border border-white/40 px-5 text-[var(--text-main)] font-semibold placeholder:text-[var(--text-main)]/20 focus:bg-white focus:ring-2 focus:ring-[var(--accent-main)] outline-none transition-all"
+              />
+            </div>
 
-                                ))}
-                                
-                              </select>
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-6">
-                            <div>
-                              <label className="text-white font-semibold">
-                                Link to Contact/Deal
-                              </label>{" "}
-                              <br />
-                              
-                              <input type="text" name="ContactDeal"
-                              placeholder='Search contacts or deals...' 
-                              value={Task.ContactDeal}
-                              onChange={Handlechange}
-                                className='w-full bg-[#283039] border border-transparent focus:border-primary focus:ring-0 rounded-lg text-white px-4 py-2.5 cursor-pointer'
-                              />
+            {/* DATE & TIME */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-[var(--text-main)]/50 ml-1">
+                  <Calendar size={14} /> Due Date
+                </label>
+                <input
+                  type="date"
+                  name="DUE_DATE"
+                  value={Task.DUE_DATE}
+                  onChange={Handlechange}
+                  className="w-full h-12 rounded-2xl bg-white/60 border border-white/40 px-5 text-[var(--text-main)] font-semibold outline-none focus:ring-2 focus:ring-[var(--accent-main)] transition-all cursor-pointer"
+                />
+              </div>
 
-                            </div>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-[var(--text-main)]/50 ml-1">
+                  <Clock size={14} /> Due Time
+                </label>
+                <input
+                  type="time"
+                  name="Due_Time"
+                  value={Task.Due_Time}
+                  onChange={Handlechange}
+                  className="w-full h-12 rounded-2xl bg-white/60 border border-white/40 px-5 text-[var(--text-main)] font-semibold outline-none focus:ring-2 focus:ring-[var(--accent-main)] transition-all cursor-pointer"
+                />
+              </div>
+            </div>
 
-                             <div>
-                              <label className="text-white font-semibold">
-                                Reminder
-                              </label>{" "}
-                              <br />
-                              <select
-                                name="Reminder"
-                                onChange={Handlechange}
-                                value={Task.Reminder}
-                                className='w-full bg-[#283039] border border-transparent focus:border-primary focus:ring-0 rounded-lg text-white px-4 py-2.5 cursor-pointer'
-                              >
-                                <option value="">none</option>
-                                <option value="Website">15 minuets before</option>
-                                <option value="Inbound Call">1 hour before</option>
-                                <option value="Email Inquiry">1 day before</option>
-                              </select>
-                            </div>
-                            
-                          </div>
+            {/* PRIORITY & ASSIGNEE */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-[var(--text-main)]/50 ml-1">
+                  <Flag size={14} /> Priority Level
+                </label>
+                <select
+                  name="Priority"
+                  value={Task.Priority}
+                  onChange={Handlechange}
+                  className="w-full h-12 rounded-2xl bg-white/60 border border-white/40 px-5 text-[var(--text-main)] font-bold outline-none focus:ring-2 focus:ring-[var(--accent-main)] transition-all appearance-none cursor-pointer"
+                >
+                  <option value="">Select Priority</option>
+                  <option value="low">🟢 Low</option>
+                  <option value="medium">🟡 Medium</option>
+                  <option value="high">🔴 High</option>
+                </select>
+              </div>
 
-                          <div>
-                              <label className="text-white font-semibold">
-                                Description
-                              </label>{" "}
-                              <br />
-                              <textarea
-                                name="Notes"
-                                onChange={Handlechange}
-                                value={Task.Notes}
-                                placeholder="Enter Descrition"
-                                className="w-full bg-[#283039] border h-30 border-transparent focus:border-primary focus:ring-0 rounded-lg text-white placeholder-[#9cabba]/50 px-4 py-2.5 resize-none transition-all outline-none"
-                                
-                              ></textarea>
-                            </div>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-[var(--text-main)]/50 ml-1">
+                  <User size={14} /> Assigned To
+                </label>
+                <select
+                  name="Assignee"
+                  value={Task.Assignee}
+                  onChange={Handlechange}
+                  className="w-full h-12 rounded-2xl bg-white/60 border border-white/40 px-5 text-[var(--text-main)] font-bold outline-none focus:ring-2 focus:ring-[var(--accent-main)] transition-all appearance-none cursor-pointer"
+                >
+                  <option value="">Select User</option>
+                  {AllUser.map((u) => (
+                    <option key={u._id} value={u.name}>
+                      {u.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
-    
-                        </div>
-                          <div className="flex border-t pt-4 pb-4 border-[#283039] justify-end gap-5 pr-5">
-                            <button className="px-4 py-2 rounded-lg bg-white/10 text-white hover:bg-white/20">
-                              Cancel
-                            </button>
-                            <button
-                              type="submit"
-                              className="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700"
-                            >
-                              Submit
-                            </button>
-                          </div>
-                      </form>
-                    </div>
-                  </div>
-                </div>
-    </>
-  )
+            {/* LINKED & REMINDER */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-[var(--text-main)]/50 ml-1">
+                  <LinkIcon size={14} /> Link to Contact / Deal
+                </label>
+                <input
+                  name="ContactDeal"
+                  value={Task.ContactDeal}
+                  onChange={Handlechange}
+                  placeholder="e.g. John Doe / Web Project"
+                  className="w-full h-12 rounded-2xl bg-white/60 border border-white/40 px-5 text-[var(--text-main)] font-semibold outline-none focus:ring-2 focus:ring-[var(--accent-main)] transition-all"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-[var(--text-main)]/50 ml-1">
+                  <Bell size={14} /> Reminder
+                </label>
+                <select
+                  name="Reminder"
+                  value={Task.Reminder}
+                  onChange={Handlechange}
+                  className="w-full h-12 rounded-2xl bg-white/60 border border-white/40 px-5 text-[var(--text-main)] font-bold outline-none focus:ring-2 focus:ring-[var(--accent-main)] transition-all appearance-none cursor-pointer"
+                >
+                  <option value="">None</option>
+                  <option value="15m">15 minutes before</option>
+                  <option value="1h">1 hour before</option>
+                  <option value="1d">1 day before</option>
+                </select>
+              </div>
+            </div>
+
+            {/* NOTES */}
+            <div className="space-y-2">
+              <label className="text-[11px] font-black uppercase tracking-widest text-[var(--text-main)]/50 ml-1">
+                Additional Notes
+              </label>
+              <textarea
+                name="Notes"
+                value={Task.Notes}
+                onChange={Handlechange}
+                placeholder="Describe the task requirements in detail..."
+                className="w-full h-32 rounded-3xl bg-white/60 border border-white/40 p-5 text-[var(--text-main)] font-medium outline-none focus:ring-2 focus:ring-[var(--accent-main)] transition-all resize-none shadow-inner"
+              />
+            </div>
+          </div>
+
+          {/* FOOTER */}
+          <div className="flex justify-end gap-3 px-8 py-6 border-t border-black/5 bg-black/5 rounded-b-[2.5rem]">
+            <button
+              type="button"
+              onClick={onClose}
+              className="h-12 px-6 rounded-2xl font-bold text-[var(--text-main)]/60 hover:bg-black/5 transition-all"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="h-12 px-10 rounded-2xl bg-[var(--accent-main)] text-white font-black text-sm uppercase tracking-widest shadow-lg shadow-[var(--accent-main)]/20 hover:scale-[1.02] active:scale-95 transition-all"
+            >
+              Submit Task
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 }
 
-export default AddTaskForm
+export default AddTaskForm;
