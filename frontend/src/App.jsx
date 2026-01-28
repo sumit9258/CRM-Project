@@ -17,13 +17,13 @@ import Pipeline from './componants/Pipeline'
 import "./index.css"
 import { useAuth } from './context/AuthContext'
 import Home from './componants/Home'
+import Loader from './componants/Loader'
 function App() {
  const { loading } = useAuth();
 
-  // 🔴 CRITICAL: block rendering until auth is resolved
- 
-
-
+if (loading) {
+ return <Loader/>
+}
   return (
     <>
       <ToastContainer />
