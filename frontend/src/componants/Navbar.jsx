@@ -70,7 +70,9 @@ function Navbar() {
               <h2 className="font-black text-xl text-[var(--text-main)] tracking-tighter uppercase">
                 Lead<span className="text-[var(--accent-main)]">Flow</span>
               </h2>
-              <p className="text-[10px] font-bold text-[var(--text-main)]/40 tracking-widest uppercase -mt-1">Enterprise</p>
+              <p className="text-[10px] font-bold text-[var(--text-main)]/40 tracking-widest uppercase -mt-1">
+                Enterprise
+              </p>
             </div>
           </div>
 
@@ -84,38 +86,60 @@ function Navbar() {
 
         {/* NAVIGATION SECTION */}
         <div className="space-y-1">
-          <p className="px-4 text-[10px] font-black text-[var(--text-main)]/30 uppercase tracking-[0.2em] mb-4">Main Menu</p>
+          <p className="px-4 text-[10px] font-black text-[var(--text-main)]/30 uppercase tracking-[0.2em] mb-4">
+            Main Menu
+          </p>
           <nav className="flex flex-col gap-2">
-            <NavLink to={user?.role=="admin"?"/dashboard":"/home"} className={navLinkClass}>
-            {user.role=="admin"?(<>
-             <LayoutDashboard size={20} className="group-hover:rotate-12 transition-transform" />
-              <span className="font-bold text-sm">Dashboard</span>
-            </>):(<>
-             <Home size={20} className="group-hover:rotate-12 transition-transform" />
-              <span className="font-bold text-sm">Home</span>
-            </>)}
+            <NavLink
+              to={user?.role == "admin" ? "/dashboard" : "/home"}
+              className={navLinkClass}
+            >
+              {user.role == "admin" ? (
+                <>
+                  <LayoutDashboard
+                    size={20}
+                    className="group-hover:rotate-12 transition-transform"
+                  />
+                  <span className="font-bold text-sm">Dashboard</span>
+                </>
+              ) : (
+                <>
+                  <Home
+                    size={20}
+                    className="group-hover:rotate-12 transition-transform"
+                  />
+                  <span className="font-bold text-sm">Home</span>
+                </>
+              )}
             </NavLink>
 
             <NavLink to="/contact" className={navLinkClass}>
-              <Contact size={20} className="group-hover:rotate-12 transition-transform" />
+              <Contact
+                size={20}
+                className="group-hover:rotate-12 transition-transform"
+              />
               <span className="font-bold text-sm">Contacts</span>
             </NavLink>
 
-{user.role=="user"&&
-            <NavLink to="/pipeline" className={navLinkClass}>
-              <ChartBar size={20} className="group-hover:rotate-12 transition-transform" />
-              <span className="font-bold text-sm">Sales Pipeline</span>
-            </NavLink>
-}
-            
-
+            {user.role == "user" && (
+              <NavLink to="/pipeline" className={navLinkClass}>
+                <ChartBar
+                  size={20}
+                  className="group-hover:rotate-12 transition-transform"
+                />
+                <span className="font-bold text-sm">Sales Pipeline</span>
+              </NavLink>
+            )}
           </nav>
         </div>
 
         {/* FOOTER / USER PROFILE */}
         <div className="mt-auto pt-8 border-t border-black/5 space-y-4">
           <NavLink to="/setting" className={navLinkClass}>
-            <Settings size={20} className="group-hover:spin-slow transition-transform" />
+            <Settings
+              size={20}
+              className="group-hover:spin-slow transition-transform"
+            />
             <span className="font-bold text-sm">Settings</span>
           </NavLink>
 
@@ -123,7 +147,10 @@ function Navbar() {
           <div className="flex items-center gap-3 bg-white/40 backdrop-blur-md p-3 rounded-2xl border border-white/60 shadow-sm">
             <div className="relative">
               <img
-                src={user?.ProfilePicture || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
+                src={
+                  user?.ProfilePicture ||
+                  "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                }
                 className="w-11 h-11 rounded-[14px] object-cover border-2 border-white shadow-sm"
                 alt="Profile"
               />
